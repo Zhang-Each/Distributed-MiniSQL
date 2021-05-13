@@ -12,7 +12,7 @@
         <module>MasterServer</module>
         <module>RegionServer</module>
         <module>Client</module>
-        <module>Client</module>
+        <module>RPC</module>
     </modules>
 
     <build>

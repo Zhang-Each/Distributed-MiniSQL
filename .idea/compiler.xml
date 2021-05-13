@@ -6,11 +6,15 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="MasterServer" />
-        <module name="RegionServer" />
-        <module name="RPC" />
         <module name="Client" />
+        <module name="MasterServer" />
+        <module name="RPC" />
+        <module name="RegionServer" />
+        <module name="thrift" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="thrift" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
