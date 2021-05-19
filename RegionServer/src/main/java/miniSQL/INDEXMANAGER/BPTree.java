@@ -9,7 +9,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         this.root = new LeafNode<>(order);
     }
 
-    public Vector<V> find_eq(K key) {
+    public Vector<V> findEq(K key) {
         Vector<V> res = new Vector<>();
         try {
             res.add(this.root.find(key));
@@ -19,7 +19,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         return res;
     }
 
-    public Vector<V> find_neq(K key) {
+    public Vector<V> findNeq(K key) {
         Vector<V> res = new Vector<>();
         if (this.root != null) {
             LeafNode<K, V> leaf = this.root.get_first_leaf();
@@ -29,7 +29,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                         res.add(leaf.values[i]);
                     }
                 } else {
-                    int index = leaf.find_index(key);
+                    int index = leaf.findIndex(key);
                     if (leaf.keys[index].equals(key)) {
                         for (int i = 0; i < index; i++) {
                             res.add(leaf.values[i]);
@@ -49,10 +49,10 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         return res;
     }
 
-    public Vector<V> find_leq(K key) {
-        Vector<V> res = this.find_less(key);
+    public Vector<V> findLeq(K key) {
+        Vector<V> res = this.findLess(key);
         try {
-            V value = this.find_eq(key).get(0);
+            V value = this.findEq(key).get(0);
             res.add(value);
         } catch (IllegalArgumentException e) {
             //do nothing
@@ -60,7 +60,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         return res;
     }
 
-    public Vector<V> find_less(K key) {
+    public Vector<V> findLess(K key) {
         Vector<V> res = new Vector<>();
         if (this.root != null) {
             LeafNode<K, V> leaf = this.root.get_first_leaf();
@@ -70,7 +70,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                         res.add(leaf.values[i]);
                     }
                 } else {
-                    int index = leaf.find_index(key);
+                    int index = leaf.findIndex(key);
                     for (int i = 0; i < index; i++) {
                         res.add(leaf.values[i]);
                     }
@@ -82,19 +82,19 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         return res;
     }
 
-    public Vector<V> find_geq(K key) {
+    public Vector<V> findGeq(K key) {
         Vector<V> res = new Vector<>();
         try {
-            V value = this.find_eq(key).get(0);
+            V value = this.findEq(key).get(0);
             res.add(value);
         } catch (IllegalArgumentException e) {
             //do nothing
         }
-        res.addAll(this.find_greater(key));
+        res.addAll(this.findGreater(key));
         return res;
     }
 
-    public Vector<V> find_greater(K key) {
+    public Vector<V> findGreater(K key) {
         return this.root.find_greater(key);
     }
 
@@ -120,8 +120,8 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         this.root.print();
     }
 
-    public void check_structure() throws RuntimeException { //used for debug: to check the legality of the structure of the B+ tree
-        this.root.check_structure();
+    public void checkStructure() throws RuntimeException { //used for debug: to check the legality of the structure of the B+ tree
+        this.root.checkStructure();
     }
 
     static abstract class Node<K extends Comparable<? super K>, V> {
@@ -155,11 +155,11 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
 
         public abstract void print(); //Pre-order traversal
 
-        public abstract void check_structure() throws RuntimeException;
+        public abstract void checkStructure() throws RuntimeException;
 
-        public abstract K get_least();
+        public abstract K getLeast();
 
-        protected int find_index(K key) { //binary-search
+        protected int findIndex(K key) { //binary-search
             if (this.cnt == 0) {
                 return 0;
             }
@@ -182,10 +182,10 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
             return index;
         }
 
-        protected void update_deleted_keys(K oldKey, K newKey) {
+        protected void updateDeletedKeys(K oldKey, K newKey) {
             Node<K, V> node = this.parent;
             while (node != null) {
-                int index = node.find_index(oldKey);
+                int index = node.findIndex(oldKey);
                 if (node.keys[index].equals(oldKey)) {
                     node.keys[index] = newKey; //update old key to new key
                     return;
@@ -321,7 +321,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         }
 
         public Node<K, V> insert_node(Node<K, V> node, K key) { //insert a node into this
-            int index = find_index(key); //find the index the node should be inserted into
+            int index = findIndex(key); //find the index the node should be inserted into
             if (this.cnt < this.order) {
                 this.insert_into_array(key, node, index);
                 return null;
@@ -370,7 +370,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         }
 
         private Node<K, V> delete_leaf_node(LeafNode<K, V> node, K key) throws IllegalArgumentException { //delete a leaf node which is this's child
-            int index = this.find_index(key);
+            int index = this.findIndex(key);
             if (this.children[index + 1] != node) { //node isn't child of this
                 throw new IllegalArgumentException();
             }
@@ -402,7 +402,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                 this.children[0] = left.children[left.cnt]; //change the last children of left sibling to the first children of this
                 this.children[0].parent = this;
                 this.cnt++;
-                this.update_deleted_keys(this.keys[0], left.keys[left.cnt - 1]); //update the keys of this's ancestors
+                this.updateDeletedKeys(this.keys[0], left.keys[left.cnt - 1]); //update the keys of this's ancestors
                 left.keys[left.cnt - 1] = null;
                 left.children[left.cnt] = null;
                 left.cnt--;
@@ -421,7 +421,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                 right.children[right.cnt] = null;
                 right.keys[right.cnt - 1] = null;
                 right.cnt--;
-                right.update_deleted_keys(this.keys[this.cnt - 1], right.children[0].keys[0]); //update the keys of right's ancestors
+                right.updateDeletedKeys(this.keys[this.cnt - 1], right.children[0].keys[0]); //update the keys of right's ancestors
                 return null;
             }
 
@@ -551,18 +551,18 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         }
 
         @Override
-        public K get_least() { //get the least key in this's subtree
-            return this.children[0].get_least();
+        public K getLeast() { //get the least key in this's subtree
+            return this.children[0].getLeast();
         }
 
         @Override
-        public void check_structure() throws RuntimeException {
-            this.children[0].check_structure();
+        public void checkStructure() throws RuntimeException {
+            this.children[0].checkStructure();
             for (int i = 1; i <= this.cnt; i++) {
-                if (this.keys[i - 1] != this.children[i].get_least()) {
+                if (this.keys[i - 1] != this.children[i].getLeast()) {
                     throw new RuntimeException();
                 }
-                this.children[i].check_structure();
+                this.children[i].checkStructure();
             }
         }
     }
@@ -599,7 +599,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         @Override
         public Vector<V> find_greater(K key) {
             Vector<V> res = new Vector<>();
-            int index = this.find_index(key);
+            int index = this.findIndex(key);
             if (index < this.cnt) {
                 if (this.keys[index].equals(key)){
                     index++;
@@ -625,7 +625,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
 
         @Override
         public void update(K key, V value) throws IllegalArgumentException {
-            int index = find_index(key);
+            int index = findIndex(key);
             if (index >= this.cnt || !this.keys[index].equals(key)) {
                 throw new IllegalArgumentException("Key " + key + " not found"); //not found
             }
@@ -635,7 +635,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         @Override
         public Node<K, V> insert(K key, V value) throws IllegalArgumentException {
             //Find the index of the key (binary search)
-            int index = find_index(key);
+            int index = findIndex(key);
             if (index < this.cnt && this.keys[index].equals(key)) {
                 throw new IllegalArgumentException("Key " + key + " already exists"); //already exists
             }
@@ -709,7 +709,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
 
         @Override
         public Node<K, V> delete(K key) throws IllegalArgumentException {
-            int index = this.find_index(key);
+            int index = this.findIndex(key);
             if (!this.keys[index].equals(key)) {
                 throw new IllegalArgumentException("Key " + key + " not found");
             }
@@ -721,7 +721,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
             }
             if (this.cnt >= (this.order + 1) / 2) {
                 if (index == 0) {
-                    this.update_deleted_keys(key, this.keys[0]);
+                    this.updateDeletedKeys(key, this.keys[0]);
                 }
                 return null;
             }
@@ -735,7 +735,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                 left.keys[left.cnt - 1] = null;
                 left.values[left.cnt - 1] = null;
                 left.cnt--;
-                this.update_deleted_keys(oldKey, this.keys[0]);
+                this.updateDeletedKeys(oldKey, this.keys[0]);
                 return null;
             }
             if (right != null && right.cnt > (this.order + 1) / 2) {
@@ -743,9 +743,9 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                 this.values[this.cnt] = right.values[0];
                 this.cnt++;
                 right.delete_from_array(0);
-                right.update_deleted_keys(this.keys[this.cnt - 1], right.keys[0]);
+                right.updateDeletedKeys(this.keys[this.cnt - 1], right.keys[0]);
                 if (index == 0) {
-                    this.update_deleted_keys(oldKey, this.keys[0]);
+                    this.updateDeletedKeys(oldKey, this.keys[0]);
                 }
                 return null;
             }
@@ -756,9 +756,9 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
                 if (index == 0) {
                      //update the keys of this's ancestors
                     if (this.cnt > 0) {
-                        this.update_deleted_keys(oldKey, this.keys[0]);
+                        this.updateDeletedKeys(oldKey, this.keys[0]);
                     } else {
-                        this.update_deleted_keys(oldKey, right.keys[0]);
+                        this.updateDeletedKeys(oldKey, right.keys[0]);
                     }
                 }
                 oldKey = right.keys[0];
@@ -785,7 +785,7 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
             if (this.parent == null) {
                 return null;
             }
-            int index = this.parent.find_index(oldKey);
+            int index = this.parent.findIndex(oldKey);
             LeafNode<K, V> left = (LeafNode<K, V>)this.parent.children[index];
             if (left.next != this) {
                 return null;
@@ -828,12 +828,12 @@ public class BPTree<K extends Comparable<? super K>, V> { // K:key type; V:value
         }
 
         @Override
-        public K get_least() {
+        public K getLeast() {
             return this.keys[0];
         }
 
         @Override
-        public void check_structure() throws RuntimeException {
+        public void checkStructure() throws RuntimeException {
             return;
         }
     }

@@ -15,15 +15,15 @@ public class TableRow {
     }
 
     //add one new attribute value in table row
-    public void add_attribute_value(String attributeValue) {
+    public void addAttributeValue(String attributeValue) {
         this.attributeValue.add(attributeValue);
     }
 
-    public String get_attribute_value(int index) {
+    public String getAttributeValue(int index) {
         return attributeValue.get(index);
     }
 
-    public int get_attribute_size() {
+    public int getAttributeSize() {
         return attributeValue.size();
     }
 }

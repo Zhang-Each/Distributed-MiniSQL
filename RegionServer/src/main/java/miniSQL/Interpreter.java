@@ -84,10 +84,10 @@ public class Interpreter {
                             throw new QException(0, 201, "Can't find create object");
                         switch (tokens[1]) {
                             case "table":
-                                parse_create_table(result);
+                                parseCreateTable(result);
                                 break;
                             case "index":
-                                parse_create_index(result);
+                                parseCreateIndex(result);
                                 break;
                             default:
                                 throw new QException(0, 202, "Can't identify " + tokens[1]);
@@ -98,32 +98,32 @@ public class Interpreter {
                             throw new QException(0, 203, "Can't find drop object");
                         switch (tokens[1]) {
                             case "table":
-                                parse_drop_table(result);
+                                parseDropTable(result);
                                 break;
                             case "index":
-                                parse_drop_index(result);
+                                parseDropIndex(result);
                                 break;
                             default:
                                 throw new QException(0, 204, "Can't identify " + tokens[1]);
                         }
                         break;
                     case "select":
-                        parse_select(result);
+                        parseSelect(result);
                         break;
                     case "insert":
-                        parse_insert(result);
+                        parseInsert(result);
                         break;
                     case "delete":
-                        parse_delete(result);
+                        parseDelete(result);
                         break;
                     case "quit":
-                        parse_quit(result, reader);
+                        parseQuit(result, reader);
                         break;
                     case "execfile":
-                        parse_sql_file(result);
+                        parseSqlFile(result);
                         break;
                     case "show":
-                        parse_show(result);
+                        parseShow(result);
                         break;
                     default:
                         throw new QException(0, 205, "Can't identify " + tokens[0]);
@@ -136,16 +136,16 @@ public class Interpreter {
         }
     }
 
-    private static void parse_show(String statement) throws Exception {
+    private static void parseShow(String statement) throws Exception {
         String type = Utils.substring(statement, "show ", "").trim();
         if (type.equals("tables")) {
-            CatalogManager.show_table();
+            CatalogManager.showTable();
         } else if (type.equals("indexes")) {
-            CatalogManager.show_index();
+            CatalogManager.showIndex();
         } else throw new QException(0, 323, "Can not find valid key word after 'show'!");
     }
 
-    private static void parse_create_table(String statement) throws Exception {
+    private static void parseCreateTable(String statement) throws Exception {
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.replaceAll(" *, *", ",");
         statement = statement.trim();
@@ -241,11 +241,11 @@ public class Interpreter {
             throw new QException(0, 416, "Not specified primary key in table " + tableName);
 
         Table table = new Table(tableName, primaryName, attrVec); // create table
-        API.create_table(tableName, table);
+        API.createTable(tableName, table);
         System.out.println("-->Create table " + tableName + " successfully");
     }
 
-    private static void parse_drop_table(String statement) throws Exception {
+    private static void parseDropTable(String statement) throws Exception {
         String[] tokens = statement.split(" ");
         if (tokens.length == 2)
             throw new QException(0, 601, "Not specify table name");
@@ -253,11 +253,11 @@ public class Interpreter {
             throw new QException(0, 602, "Extra parameters in drop table");
 
         String tableName = tokens[2]; //get table name
-        API.drop_table(tableName);
+        API.dropTable(tableName);
         System.out.println("-->Drop table " + tableName + " successfully");
     }
 
-    private static void parse_create_index(String statement) throws Exception {
+    private static void parseCreateIndex(String statement) throws Exception {
         statement = statement.replaceAll("\\s+", " ");
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.trim();
@@ -283,15 +283,15 @@ public class Interpreter {
         attrName = attrName.substring(1, attrName.length() - 1); //extract attribute name
         if (tokens.length != 6)
             throw new QException(0, 706, "Extra parameters in create index");
-        if (!CatalogManager.is_unique(tableName, attrName))
+        if (!CatalogManager.isUnique(tableName, attrName))
             throw new QException(1, 707, "Not a unique attribute");
 
         Index index = new Index(indexName, tableName, attrName);
-        API.create_index(index);
+        API.createIndex(index);
         System.out.println("-->Create index " + indexName + " successfully");
     }
 
-    private static void parse_drop_index(String statement) throws Exception {
+    private static void parseDropIndex(String statement) throws Exception {
         String[] tokens = statement.split(" ");
         if (tokens.length == 2)
             throw new QException(0, 801, "Not specify index name");
@@ -299,11 +299,11 @@ public class Interpreter {
             throw new QException(0, 802, "Extra parameters in drop index");
 
         String indexName = tokens[2]; //get table name
-        API.drop_index(indexName);
+        API.dropIndex(indexName);
         System.out.println("-->Drop index " + indexName + " successfully");
     }
 
-    private static void parse_select(String statement) throws Exception {
+    private static void parseSelect(String statement) throws Exception {
         //select ... from ... where ...
         String attrStr = Utils.substring(statement, "select ", " from");
         String tabStr = Utils.substring(statement, "from ", " where");
@@ -320,14 +320,14 @@ public class Interpreter {
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), new Vector<>());
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret, tabStr);
+                Utils.printRows(ret, tabStr);
             } else { //select * from [] where [];
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
-                conditions = Utils.create_conditon(conSet);
+                conditions = Utils.createConditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), conditions);
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret, tabStr);
+                Utils.printRows(ret, tabStr);
             }
         } else {
             attrNames = Utils.convert(attrStr.split(" *, *")); //get attributes list
@@ -335,21 +335,21 @@ public class Interpreter {
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, attrNames, new Vector<>());
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret, tabStr);
+                Utils.printRows(ret, tabStr);
             } else { //select [attr] from [table] where
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
-                conditions = Utils.create_conditon(conSet);
+                conditions = Utils.createConditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, attrNames, conditions);
                 endTime = System.currentTimeMillis();
-                Utils.print_rows(ret, tabStr);
+                Utils.printRows(ret, tabStr);
             }
         }
         double usedTime = (endTime - startTime) / 1000.0;
         System.out.println("Finished in " + usedTime + " s");
     }
 
-    private static void parse_insert(String statement) throws Exception {
+    private static void parseInsert(String statement) throws Exception {
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.replaceAll(" *, *", ",");
         statement = statement.trim();
@@ -393,19 +393,19 @@ public class Interpreter {
                 throw new QException(0, 908, "Empty attribute value in insert value");
             if (valueParas[i].matches("^\".*\"$") || valueParas[i].matches("^\'.*\'$"))  // extract from '' or " "
                 valueParas[i] = valueParas[i].substring(1, valueParas[i].length() - 1);
-            tableRow.add_attribute_value(valueParas[i]); //add to table row
+            tableRow.addAttributeValue(valueParas[i]); //add to table row
         }
 
         //Check unique attributes
-        if (tableRow.get_attribute_size() != CatalogManager.get_attribute_num(tableName))
+        if (tableRow.getAttributeSize() != CatalogManager.getAttributeNum(tableName))
             throw new QException(1, 909, "Attribute number doesn't match");
-        Vector<Attribute> attributes = CatalogManager.get_table(tableName).attributeVector;
+        Vector<Attribute> attributes = CatalogManager.getTable(tableName).attributeVector;
         for (int i = 0; i < attributes.size(); i++) {
             Attribute attr = attributes.get(i);
             if (attr.isUnique) {
                 Condition cond = new Condition(attr.attributeName, "=", valueParas[i]);
-                if (CatalogManager.is_index_key(tableName, attr.attributeName)) {
-                    Index idx = CatalogManager.get_index(CatalogManager.get_index_name(tableName, attr.attributeName));
+                if (CatalogManager.isIndexKey(tableName, attr.attributeName)) {
+                    Index idx = CatalogManager.getIndex(CatalogManager.getIndexName(tableName, attr.attributeName));
                     if (IndexManager.select(idx, cond).isEmpty())
                         continue;
                 } else {
@@ -419,11 +419,11 @@ public class Interpreter {
             }
         }
 
-        API.insert_row(tableName, tableRow);
+        API.insertRow(tableName, tableRow);
         System.out.println("-->Insert successfully");
     }
 
-    private static void parse_delete(String statement) throws Exception {
+    private static void parseDelete(String statement) throws Exception {
         //delete from [tabName] where []
         int num;
         String tabStr = Utils.substring(statement, "from ", " where").trim();
@@ -432,18 +432,18 @@ public class Interpreter {
         Vector<String> attrNames;
         if (tabStr.equals("")) {  //delete from ...
             tabStr = Utils.substring(statement, "from ", "").trim();
-            num = API.delete_row(tabStr, new Vector<>());
+            num = API.deleteRow(tabStr, new Vector<>());
             System.out.println("Query ok! " + num + " row(s) are deleted");
         } else {  //delete from ... where ...
             String[] conSet = conStr.split(" *and *");
             //get condition vector
-            conditions = Utils.create_conditon(conSet);
-            num = API.delete_row(tabStr, conditions);
+            conditions = Utils.createConditon(conSet);
+            num = API.deleteRow(tabStr, conditions);
             System.out.println("Query ok! " + num + " row(s) are deleted");
         }
     }
 
-    private static void parse_quit(String statement, BufferedReader reader) throws Exception {
+    private static void parseQuit(String statement, BufferedReader reader) throws Exception {
         String[] tokens = statement.split(" ");
         if (tokens.length != 1)
             throw new QException(0, 1001, "Extra parameters in quit");
@@ -454,7 +454,7 @@ public class Interpreter {
         System.exit(0);
     }
 
-    private static void parse_sql_file(String statement) throws Exception {
+    private static void parseSqlFile(String statement) throws Exception {
         execFile++;
         String[] tokens = statement.split(" ");
         if (tokens.length != 2)
@@ -498,7 +498,7 @@ class Utils {
     }
 
     //ab <> 'c' | cab ="fabd"  | k=5  | char= '53' | int = 2
-    public static Vector<Condition> create_conditon(String[] conSet) throws Exception {
+    public static Vector<Condition> createConditon(String[] conSet) throws Exception {
         Vector<Condition> c = new Vector<>();
         for (int i = 0; i < conSet.length; i++) {
             int index = contains(conSet[i], OPERATOR);
@@ -510,7 +510,7 @@ class Utils {
         return c;
     }
 
-    public static boolean check_type(String attr, boolean flag) {
+    public static boolean checkType(String attr, boolean flag) {
         return true;
     }
 
@@ -522,32 +522,32 @@ class Utils {
     }
 
     public static void printRow(TableRow row) {
-        for (int i = 0; i < row.get_attribute_size(); i++) {
-            System.out.print(row.get_attribute_value(i) + "\t");
+        for (int i = 0; i < row.getAttributeSize(); i++) {
+            System.out.print(row.getAttributeValue(i) + "\t");
         }
         System.out.println();
     }
 
-    public static int get_max_attr_length(Vector<TableRow> tab, int index) {
+    public static int getMaxAttrLength(Vector<TableRow> tab, int index) {
         int len = 0;
         for (int i = 0; i < tab.size(); i++) {
-            int v = tab.get(i).get_attribute_value(index).length();
+            int v = tab.get(i).getAttributeValue(index).length();
             len = v > len ? v : len;
         }
         return len;
     }
 
-    public static void print_rows(Vector<TableRow> tab, String tabName) {
+    public static void printRows(Vector<TableRow> tab, String tabName) {
         if (tab.size() == 0) {
             System.out.println("-->Query ok! 0 rows are selected");
             return;
         }
-        int attrSize = tab.get(0).get_attribute_size();
+        int attrSize = tab.get(0).getAttributeSize();
         int cnt = 0;
         Vector<Integer> v = new Vector<>(attrSize);
         for (int j = 0; j < attrSize; j++) {
-            int len = get_max_attr_length(tab, j);
-            String attrName = CatalogManager.get_attribute_name(tabName, j);
+            int len = getMaxAttrLength(tab, j);
+            String attrName = CatalogManager.getAttributeName(tabName, j);
             if (attrName.length() > len) len = attrName.length();
             v.add(len);
             String format = "|%-" + len + "s";
@@ -562,7 +562,7 @@ class Utils {
             TableRow row = tab.get(i);
             for (int j = 0; j < attrSize; j++) {
                 String format = "|%-" + v.get(j) + "s";
-                System.out.printf(format, row.get_attribute_value(j));
+                System.out.printf(format, row.getAttributeValue(j));
             }
             System.out.println("|");
         }

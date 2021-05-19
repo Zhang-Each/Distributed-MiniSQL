@@ -27,7 +27,7 @@ public class FieldType {
         return this.type;
     }
 
-    int get_length() {
+    int getLength() {
         switch(this.type) {
             case CHAR:
                 return this.length * CHARSIZE;
@@ -40,10 +40,10 @@ public class FieldType {
         }
     }
 
-    void set_type(NumType type) {
+    void setType(NumType type) {
         this.type = type;
     }
-    void set_length(int length) {
+    void setLength(int length) {
         this.length = length;
     }
 }

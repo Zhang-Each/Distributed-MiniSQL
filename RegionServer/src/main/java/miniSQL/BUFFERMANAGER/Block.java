@@ -17,7 +17,7 @@ public class Block {
         //do noting
     }
 
-    public boolean write_data(int offset, byte[] data) {  //offset from 0 to 4096
+    public boolean writeData(int offset, byte[] data) {  //offset from 0 to 4096
         if (offset + data.length > BLOCKSIZE) return false;
         for (int i = 0; i < data.length; i++)
             blockData[i + offset] = data[i];
@@ -26,12 +26,12 @@ public class Block {
         return true;
     }
 
-    public void reset_modes() {
+    public void resetModes() {
         isDirty = isLocked = isValid = false;  //reset all modes
         LRUCount = 0;  //reset LRU counter
     }
 
-    public int read_integer(int offset) {  //read integer from block data -- big-endian method
+    public int readInteger(int offset) {  //read integer from block data -- big-endian method
         if (offset + 4 > BLOCKSIZE) return 0;
         int b0 = blockData[offset] & 0xFF;
         int b1 = blockData[offset + 1] & 0xFF;
@@ -41,7 +41,7 @@ public class Block {
         return (b0 << 24) | (b1 << 16) | (b2 << 8) | b3;
     }
 
-    public boolean write_integer(int offset, int val) {
+    public boolean writeInteger(int offset, int val) {
         if (offset + 4 > BLOCKSIZE) return false;
         blockData[offset] = (byte) (val >> 24 & 0xFF);
         blockData[offset + 1] = (byte) (val >> 16 & 0xFF);
@@ -52,17 +52,17 @@ public class Block {
         return true;
     }
 
-    public float read_float(int offset) {
-        int dat = read_integer(offset);
+    public float readFloat(int offset) {
+        int dat = readInteger(offset);
         return Float.intBitsToFloat(dat);
     }
 
-    public boolean write_float(int offset, float val) {
+    public boolean writeFloat(int offset, float val) {
         int dat = Float.floatToIntBits(val);
-        return write_integer(offset, dat);
+        return writeInteger(offset, dat);
     }
 
-    public String read_string(int offset, int length) {
+    public String readString(int offset, int length) {
         byte[] buf = new byte[length];
         for (int i = 0; i < length && i < BLOCKSIZE - offset; i++)
             buf[i] = blockData[offset + i];
@@ -70,7 +70,7 @@ public class Block {
         return new String(buf);
     }
 
-    public boolean write_string(int offset, String str) {
+    public boolean writeString(int offset, String str) {
         byte[] buf = str.getBytes();
         if (offset + buf.length > BLOCKSIZE) return false;
         for (int i = 0; i < buf.length; i++)
@@ -92,27 +92,27 @@ public class Block {
         return this.isValid;
     }
 
-    public String get_filename() {
+    public String getFilename() {
         return this.filename;
     }
 
-    public int get_block_offset() {
+    public int getBlockOffset() {
         return this.blockOffset;
     }
 
-    public int get_LRU() {
+    public int getLRU() {
         return this.LRUCount;
     }
 
-    public byte[] get_block_data() {
+    public byte[] getBlockData() {
         return blockData;
     }
 
-    public void set_block_data(byte[] data) {
+    public void setBlockData(byte[] data) {
         this.blockData = data;
     }
 
-    public void set_block_data() {
+    public void setBlockData() {
         Arrays.fill(blockData, (byte) 0);  //memset block data to zero
     }
 
@@ -128,11 +128,11 @@ public class Block {
         this.isValid = flag;
     }
 
-    public void set_filename(String fname) {
+    public void setFilename(String fname) {
         this.filename = fname;
     }
 
-    public void set_block_offset(int ofs) {
+    public void setBlockOffset(int ofs) {
         this.blockOffset = ofs;
     }
 

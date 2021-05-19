@@ -15,26 +15,26 @@ public class API {
 
     public static void initial() throws Exception {
 	    try {
-		    BufferManager.initial_buffer();  //init Buffer Manager
-		    CatalogManager.initial_catalog();  //init Catalog Manager
-		    IndexManager.initial_index(); //init Index Manager
+		    BufferManager.initialBuffer();  //init Buffer Manager
+		    CatalogManager.initialCatalog();  //init Catalog Manager
+		    IndexManager.initialIndex(); //init Index Manager
 	    } catch (Exception e) {
 		    throw new QException(1, 500, "Failed to initialize API!");
 	    }
     }
 
     public static void store() throws Exception {
-	    CatalogManager.store_catalog();
-	    RecordManager.store_record();
+	    CatalogManager.storeCatalog();
+	    RecordManager.storeRecord();
     }
 
-    public static boolean create_table(String tabName, Table tab) throws Exception {
+    public static boolean createTable(String tabName, Table tab) throws Exception {
         try {
-            if (RecordManager.create_table(tabName) && CatalogManager.create_table(tab)) {
+            if (RecordManager.createTable(tabName) && CatalogManager.createTable(tab)) {
                 String indexName = tabName + "_index";  //refactor index name
-                Index index = new Index(indexName, tabName, CatalogManager.get_primary_key(tabName));
-                IndexManager.create_index(index);  //create index on Index Manager
-                CatalogManager.create_index(index); //create index on Catalog Manager
+                Index index = new Index(indexName, tabName, CatalogManager.getPrimaryKey(tabName));
+                IndexManager.createIndex(index);  //create index on Index Manager
+                CatalogManager.createIndex(index); //create index on Catalog Manager
                 return true;
             }
         } catch (NullPointerException e) {
@@ -45,48 +45,48 @@ public class API {
         throw new QException(1, 503, "Failed to create table " + tabName);
     }
 
-    public static boolean drop_table(String tabName) throws Exception {
+    public static boolean dropTable(String tabName) throws Exception {
         try {
-            for (int i = 0; i < CatalogManager.get_attribute_num(tabName); i++) {
-                String attrName = CatalogManager.get_attribute_name(tabName, i);
-                String indexName = CatalogManager.get_index_name(tabName, attrName);  //find index if exists
+            for (int i = 0; i < CatalogManager.getAttributeNum(tabName); i++) {
+                String attrName = CatalogManager.getAttributeName(tabName, i);
+                String indexName = CatalogManager.getIndexName(tabName, attrName);  //find index if exists
                 if (indexName != null) {
-                    IndexManager.drop_index(CatalogManager.get_index(indexName)); //drop index at Index Manager
+                    IndexManager.dropIndex(CatalogManager.getIndex(indexName)); //drop index at Index Manager
                 }
             }
-            if (CatalogManager.drop_table(tabName) && RecordManager.drop_table(tabName)) return true;
+            if (CatalogManager.dropTable(tabName) && RecordManager.dropTable(tabName)) return true;
         } catch (NullPointerException e) {
             throw new QException(1, 504, "Table " + tabName + " does not exist!");
         }
         throw new QException(1, 505, "Failed to drop table " + tabName);
     }
 
-    public static boolean create_index(Index index) throws Exception {
-        if (IndexManager.create_index(index) && CatalogManager.create_index(index)) return true;
+    public static boolean createIndex(Index index) throws Exception {
+        if (IndexManager.createIndex(index) && CatalogManager.createIndex(index)) return true;
         throw new QException(1, 506, "Failed to create index " + index.attributeName + " on table " + index.tableName);
     }
 
-    public static boolean drop_index(String indexName) throws Exception {
-        Index index = CatalogManager.get_index(indexName);
-        if (IndexManager.drop_index(index) && CatalogManager.drop_index(indexName)) return true;
+    public static boolean dropIndex(String indexName) throws Exception {
+        Index index = CatalogManager.getIndex(indexName);
+        if (IndexManager.dropIndex(index) && CatalogManager.dropIndex(indexName)) return true;
         throw new QException(1, 507, "Failed to drop index " + index.attributeName + " on table " + index.tableName);
     }
 
-    public static boolean insert_row(String tabName, TableRow row) throws Exception {
+    public static boolean insertRow(String tabName, TableRow row) throws Exception {
         try {
             Address recordAddr = RecordManager.insert(tabName, row);  //insert and get return address
-            int attrNum = CatalogManager.get_attribute_num(tabName);  //get the number of attribute
+            int attrNum = CatalogManager.getAttributeNum(tabName);  //get the number of attribute
             for (int i = 0; i < attrNum; i++) {
-                String attrName = CatalogManager.get_attribute_name(tabName, i);
-                String indexName = CatalogManager.get_index_name(tabName, attrName);  //find index if exists
+                String attrName = CatalogManager.getAttributeName(tabName, i);
+                String indexName = CatalogManager.getIndexName(tabName, attrName);  //find index if exists
                 if (indexName != null) {  //index exists, then need to insert the key to BPTree
-                    Index index = CatalogManager.get_index(indexName); //get index
-                    String key = row.get_attribute_value(i);  //get value of the key
+                    Index index = CatalogManager.getIndex(indexName); //get index
+                    String key = row.getAttributeValue(i);  //get value of the key
                     IndexManager.insert(index, key, recordAddr);  //insert to index manager
-                    CatalogManager.update_index_table(indexName, index); //update index
+                    CatalogManager.updateIndexTable(indexName, index); //update index
                 }
             }
-            CatalogManager.add_row_num(tabName);  //update number of records in catalog        return true;
+            CatalogManager.addRowNum(tabName);  //update number of records in catalog        return true;
             return true;
         } catch (NullPointerException e){
 	        throw new QException(1, 508, "Table " + tabName + " does not exist!");
@@ -97,13 +97,13 @@ public class API {
         }
     }
 
-    public static int delete_row(String tabName, Vector<Condition> conditions) throws Exception {
-        Condition condition = API.find_index_condition(tabName, conditions);
+    public static int deleteRow(String tabName, Vector<Condition> conditions) throws Exception {
+        Condition condition = API.findIndexCondition(tabName, conditions);
         int numberOfRecords = 0;
         if (condition != null) {
             try {
-                String indexName = CatalogManager.get_index_name(tabName, condition.get_name());
-                Index idx = CatalogManager.get_index(indexName);
+                String indexName = CatalogManager.getIndexName(tabName, condition.getName());
+                Index idx = CatalogManager.getIndex(indexName);
                 Vector<Address> addresses = IndexManager.select(idx, condition);
                 if (addresses != null) {
                     numberOfRecords = RecordManager.delete(addresses, conditions);
@@ -124,17 +124,17 @@ public class API {
 	            throw new QException(1, 515, e.getMessage());
             }
         }
-        CatalogManager.delete_row_num(tabName, numberOfRecords);
+        CatalogManager.deleteRowNum(tabName, numberOfRecords);
         return numberOfRecords;
     }
 
     public static Vector<TableRow> select(String tabName, Vector<String> attriName, Vector<Condition> conditions) throws Exception {
 	    Vector<TableRow> resultSet = new Vector<>();
-	    Condition condition = API.find_index_condition(tabName, conditions);
+	    Condition condition = API.findIndexCondition(tabName, conditions);
 	    if (condition != null) {
 		    try {
-			    String indexName = CatalogManager.get_index_name(tabName, condition.get_name());
-			    Index idx = CatalogManager.get_index(indexName);
+			    String indexName = CatalogManager.getIndexName(tabName, condition.getName());
+			    Index idx = CatalogManager.getIndex(indexName);
 			    Vector<Address> addresses = IndexManager.select(idx, condition);
 			    if (addresses != null) {
 				    resultSet = RecordManager.select(addresses, conditions);
@@ -170,10 +170,10 @@ public class API {
 
     }
 
-    private static Condition find_index_condition(String tabName, Vector<Condition> conditions) throws Exception {
+    private static Condition findIndexCondition(String tabName, Vector<Condition> conditions) throws Exception {
         Condition condition = null;
         for (int i = 0; i < conditions.size(); i++) {
-            if (CatalogManager.get_index_name(tabName, conditions.get(i).get_name()) != null) {
+            if (CatalogManager.getIndexName(tabName, conditions.get(i).getName()) != null) {
                 condition = conditions.get(i);
                 conditions.remove(condition);
                 break;

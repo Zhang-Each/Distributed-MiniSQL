@@ -29,23 +29,23 @@ public class Address implements Comparable<Address> {
 
     }
 
-    public String get_file_name() {
+    public String getFileName() {
         return this.fileName;
     }
-    public int get_block_offset() {
+    public int getBlockOffset() {
         return this.blockOffset;
     }
-    public int get_byte_offset() {
+    public int getByteOffset() {
         return this.byteOffset;
     }
 
-    public void set_file_name(String fileName) {
+    public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-    public void set_block_offset(int blockOffset) {
+    public void setBlockOffset(int blockOffset) {
         this.blockOffset = blockOffset;
     }
-    public void set_byte_offset(int byteOffset) {
+    public void setByteOffset(int byteOffset) {
         this.byteOffset = byteOffset;
     }
 }

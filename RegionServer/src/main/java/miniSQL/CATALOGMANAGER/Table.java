@@ -1,7 +1,6 @@
 package miniSQL.CATALOGMANAGER;
 
 import miniSQL.INDEXMANAGER.Index;
-import miniSQL.CATALOGMANAGER.Attribute;
 
 import java.util.Vector;
 
@@ -28,7 +27,7 @@ public class Table {
         for (int i = 0; i < attributeVector.size(); i++) {
             if (attributeVector.get(i).attributeName.equals(primaryKey))
                 attributeVector.get(i).isUnique = true;
-            this.rowLength += attributeVector.get(i).type.get_length();
+            this.rowLength += attributeVector.get(i).type.getLength();
         }
     }
 
@@ -42,7 +41,7 @@ public class Table {
         this.attributeNum = attributeVector.size();
         this.rowNum = rowNum;
         for (int i = 0; i < attributeVector.size(); i++) {
-            this.rowLength += attributeVector.get(i).type.get_length();
+            this.rowLength += attributeVector.get(i).type.getLength();
         }
     }
 }

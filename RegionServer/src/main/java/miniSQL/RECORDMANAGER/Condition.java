@@ -19,11 +19,11 @@ public class Condition {
 
     //if the data in table satisfy the condition, return true, else return false 
     public boolean satisfy(String tableName, TableRow data) {
-        int index = CatalogManager.get_attribute_index(tableName, this.name); //get attribute index
-        String type = CatalogManager.get_type(tableName, index); //get type
+        int index = CatalogManager.getAttributeIndex(tableName, this.name); //get attribute index
+        String type = CatalogManager.getType(tableName, index); //get type
 
         if (type.equals("CHAR")) { //char type
-            String cmpObject = data.get_attribute_value(index);
+            String cmpObject = data.getAttributeValue(index);
             String cmpValue = this.value;
 
             if (this.operator.equals("=")) {
@@ -42,7 +42,7 @@ public class Condition {
                 return false;
             }
         } else if (type.equals("INT")) { //integer type
-            int cmpObject = Integer.parseInt(data.get_attribute_value(index));
+            int cmpObject = Integer.parseInt(data.getAttributeValue(index));
             int cmpValue = Integer.parseInt(this.value);
             switch (this.operator) {
                 case "=":
@@ -61,7 +61,7 @@ public class Condition {
                     return false;
             }
         } else if (type.equals("FLOAT")) { //float type
-            float cmpObject = Float.parseFloat(data.get_attribute_value(index));
+            float cmpObject = Float.parseFloat(data.getAttributeValue(index));
             float cmpValue = Float.parseFloat(this.value);
             if (this.operator.equals("=")) {
                 return cmpObject == cmpValue;
@@ -84,27 +84,27 @@ public class Condition {
     }
 
 
-    public String get_name() {
+    public String getName() {
         return this.name;
     }
 
-    public String get_value() {
+    public String getValue() {
         return this.value;
     }
 
-    public String get_operator() {
+    public String getOperator() {
         return this.operator;
     }
 
-    public void set_name(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public void set_value(String value) {
+    public void setValue(String value) {
         this.value = value;
     }
 
-    public void set_operator(String operator) {
+    public void setOperator(String operator) {
         this.operator = operator;
     }
 }

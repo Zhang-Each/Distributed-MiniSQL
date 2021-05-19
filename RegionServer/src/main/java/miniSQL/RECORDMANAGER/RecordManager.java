@@ -16,24 +16,24 @@ import java.util.Vector;
 public class RecordManager {
 
     //create a file for new table, return true if success, otherwise return false
-    public static boolean create_table(String tableName) throws Exception{
+    public static boolean createTable(String tableName) throws Exception{
         File file =new File(tableName);
         if (!file.createNewFile()) //file already exists
             throw new NullPointerException();
-        Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //read first block from file
+        Block block = BufferManager.readBlockFromDiskQuote(tableName, 0); //read first block from file
         if(block == null) { //can't get from buffer
             throw new NullPointerException();
         } else {
-            block.write_integer(0, -1); //write to free list head, -1 means no free space
+            block.writeInteger(0, -1); //write to free list head, -1 means no free space
             return true;
         }
     }
 
     //delete the file of given table, return true if success, otherwise return false
-    public static boolean drop_table(String tableName) throws Exception {
+    public static boolean dropTable(String tableName) throws Exception {
         File file =new File(tableName);
         if(file.delete()) { //delete the file
-            BufferManager.make_invalid(tableName); // set the block invalid
+            BufferManager.makeInvalid(tableName); // set the block invalid
             return true;
         } else {
             throw new NullPointerException();
@@ -42,32 +42,32 @@ public class RecordManager {
 
     //select tuples from given table according to conditions, return result tuples
     public static Vector<TableRow> select(String tableName, Vector<Condition> conditions) throws Exception{
-        int tupleNum = CatalogManager.get_row_num(tableName);
-        int storeLen = get_store_length(tableName);
+        int tupleNum = CatalogManager.getRowNum(tableName);
+        int storeLen = getStoreLength(tableName);
 
         int processNum = 0; //number of processed tuples
         int byteOffset = FieldType.INTSIZE; //byte offset in block, skip file header
         int blockOffset = 0; //block offset in file
         Vector<TableRow> result = new Vector<>(); //table row result
 
-        Block block = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
+        Block block = BufferManager.readBlockFromDiskQuote(tableName, 0); //get first block
         if(block == null)  //can't get from buffer
             throw new NullPointerException();
-        if(!check_condition(tableName, conditions))  //check condition
+        if(!checkCondition(tableName, conditions))  //check condition
             return result;
 
         while(processNum < tupleNum) { //scan the block in sequence
             if (byteOffset + storeLen >= Block.BLOCKSIZE) { //find next block
                 blockOffset++;
                 byteOffset = 0; //reset byte offset
-                block = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
+                block = BufferManager.readBlockFromDiskQuote(tableName, blockOffset); //read next block
                 if(block == null) { //can't get from buffer
                     return result;
                 }
             }
-            if(block.read_integer(byteOffset) < 0) { //tuple is valid
+            if(block.readInteger(byteOffset) < 0) { //tuple is valid
                 int i;
-                TableRow newRow = get_tuple(tableName, block, byteOffset);
+                TableRow newRow = getTuple(tableName, block, byteOffset);
                 for(i = 0;i < conditions.size();i++) { //check all conditions
                     if(!conditions.get(i).satisfy(tableName, newRow))
                         break;
@@ -84,17 +84,17 @@ public class RecordManager {
 
     //insert the tuple in given table, return the inserted address
     public static Address insert(String tableName, TableRow data) throws Exception{
-        int tupleNum = CatalogManager.get_row_num(tableName);
-        Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
+        int tupleNum = CatalogManager.getRowNum(tableName);
+        Block headBlock = BufferManager.readBlockFromDiskQuote(tableName, 0); //get first block
 
         if(headBlock == null) //can't get from buffer
             throw new NullPointerException();
-        if(!check_row(tableName, data)) // illegal
+        if(!checkRow(tableName, data)) // illegal
             return null;
 
         headBlock.lock(true); //lock first block for later write
 
-        int freeOffset = headBlock.read_integer(0); //read the first free offset in file header
+        int freeOffset = headBlock.readInteger(0); //read the first free offset in file header
         int tupleOffset;
 
         if(freeOffset < 0) { //no free space
@@ -103,9 +103,9 @@ public class RecordManager {
             tupleOffset = freeOffset; //add to free offset
         }
 
-        int blockOffset = get_block_offset(tableName, tupleOffset); //block offset of tuple
-        int byteOffset = get_byte_offset(tableName, tupleOffset); //byte offset of tuple
-        Block insertBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read the block for inserting
+        int blockOffset = getBlockOffset(tableName, tupleOffset); //block offset of tuple
+        int byteOffset = getByteOffset(tableName, tupleOffset); //byte offset of tuple
+        Block insertBlock = BufferManager.readBlockFromDiskQuote(tableName, blockOffset); //read the block for inserting
 
         if(insertBlock == null) { //can't get from buffer
             headBlock.lock(false);
@@ -113,31 +113,31 @@ public class RecordManager {
         }
 
         if(freeOffset >= 0) { //if head has free offset, update it
-            freeOffset = insertBlock.read_integer(byteOffset + 1); //get next free address
-            headBlock.write_integer(0, freeOffset); //write new free offset to head
+            freeOffset = insertBlock.readInteger(byteOffset + 1); //get next free address
+            headBlock.writeInteger(0, freeOffset); //write new free offset to head
         }
 
         headBlock.lock(false); //unlock head block
-        write_tuple(tableName, data, insertBlock, byteOffset); //write data to insert block
+        writeTuple(tableName, data, insertBlock, byteOffset); //write data to insert block
         return new Address(tableName, blockOffset, byteOffset); //return insert address
     }
 
     //delete the condition-satisfied tuples from given table, return number of deleted tuples
     public static int delete(String tableName, Vector<Condition> conditions) throws Exception{
-        int tupleNum = CatalogManager.get_row_num(tableName);
-        int storeLen = get_store_length(tableName);
+        int tupleNum = CatalogManager.getRowNum(tableName);
+        int storeLen = getStoreLength(tableName);
 
         int processNum = 0; //number of processed tuples
         int byteOffset = FieldType.INTSIZE; //byte offset in block, skip file header
         int blockOffset = 0; //block offset in file
         int deleteNum = 0; // number of delete tuples
 
-        Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get first block
+        Block headBlock = BufferManager.readBlockFromDiskQuote(tableName, 0); //get first block
         Block laterBlock = headBlock; //block for sequently scanning
 
         if(headBlock == null)  //can't get from buffer
             throw new NullPointerException();
-        if(!check_condition(tableName, conditions))  //check condition
+        if(!checkCondition(tableName, conditions))  //check condition
             return 0;
 
         headBlock.lock(true); //lock head block for free list update
@@ -146,30 +146,30 @@ public class RecordManager {
             if (byteOffset + storeLen >= Block.BLOCKSIZE) { //byte overflow, find next block
                 blockOffset++;
                 byteOffset = 0; //reset byte offset
-                laterBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); //read next block
+                laterBlock = BufferManager.readBlockFromDiskQuote(tableName, blockOffset); //read next block
                 if(laterBlock == null) { //can't get from buffer
                     headBlock.lock(false);
                     return deleteNum;
                 }
             }
-            if(laterBlock.read_integer(byteOffset) < 0) { //tuple is valid
+            if(laterBlock.readInteger(byteOffset) < 0) { //tuple is valid
                 int i;
-                TableRow newRow = get_tuple(tableName, laterBlock, byteOffset); //get current tuple
+                TableRow newRow = getTuple(tableName, laterBlock, byteOffset); //get current tuple
                 for(i = 0;i < conditions.size();i++) { //check all conditions
                     if(!conditions.get(i).satisfy(tableName, newRow))
                         break;
                 }
                 if(i == conditions.size()) { //if satisfy all conditions, delete the tuple
-                    laterBlock.write_integer(byteOffset, 0); //set vaild byte to 0
-                    laterBlock.write_integer(byteOffset + 1, headBlock.read_integer(0)); //set free offset
-                    headBlock.write_integer(0, currentNum); //write deleted offset to head pointer
+                    laterBlock.writeInteger(byteOffset, 0); //set vaild byte to 0
+                    laterBlock.writeInteger(byteOffset + 1, headBlock.readInteger(0)); //set free offset
+                    headBlock.writeInteger(0, currentNum); //write deleted offset to head pointer
                     deleteNum++;
-                    for(int j = 0;j < newRow.get_attribute_size();j++) { //delete index
-                        String attrName = CatalogManager.get_attribute_name(tableName, j);
-                        if (CatalogManager.is_index_key(tableName, attrName)) {
-                            String indexName = CatalogManager.get_index_name(tableName, attrName);
-                            Index index = CatalogManager.get_index(indexName);
-                            IndexManager.delete(index, newRow.get_attribute_value(j));
+                    for(int j = 0; j < newRow.getAttributeSize(); j++) { //delete index
+                        String attrName = CatalogManager.getAttributeName(tableName, j);
+                        if (CatalogManager.isIndexKey(tableName, attrName)) {
+                            String indexName = CatalogManager.getIndexName(tableName, attrName);
+                            Index index = CatalogManager.getIndex(indexName);
+                            IndexManager.delete(index, newRow.getAttributeValue(j));
                         }
                     }
                 }
@@ -187,29 +187,29 @@ public class RecordManager {
         if(address.size() == 0) //empty address
             return new Vector<>();
         Collections.sort(address); //sort address
-        String tableName = address.get(0).get_file_name(); //get table name
+        String tableName = address.get(0).getFileName(); //get table name
         int blockOffset = 0, blockOffsetPre = -1; //current and previous block offset
         int byteOffset = 0; //current byte offset
 
         Block block = null;
         Vector<TableRow> result = new Vector<>();
 
-        if(!check_condition(tableName, conditions))  //check condition
+        if(!checkCondition(tableName, conditions))  //check condition
             return result;
 
         for(int i = 0;i < address.size(); i++) { //for each later address
-            blockOffset = address.get(i).get_block_offset(); //read block and byte offset
-            byteOffset = address.get(i).get_byte_offset();
+            blockOffset = address.get(i).getBlockOffset(); //read block and byte offset
+            byteOffset = address.get(i).getByteOffset();
             if (i == 0 || blockOffset != blockOffsetPre) { //not in same block as previous
-                block = BufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+                block = BufferManager.readBlockFromDiskQuote(tableName, blockOffset); // read a new block
                 if(block == null) {
                     if (i == 0)
                         throw new NullPointerException();
                 }
             }
-            if (block.read_integer(byteOffset) < 0) { //tuple is valid
+            if (block.readInteger(byteOffset) < 0) { //tuple is valid
                 int j;
-                TableRow newRow = get_tuple(tableName, block, byteOffset);
+                TableRow newRow = getTuple(tableName, block, byteOffset);
                 for(j = 0;j < conditions.size();j++) { //check all conditions
                     if(!conditions.get(j).satisfy(tableName,newRow))
                         break;
@@ -229,54 +229,54 @@ public class RecordManager {
             return 0;
 
         Collections.sort(address); //sort address
-        String tableName = address.get(0).get_file_name(); //get table name
+        String tableName = address.get(0).getFileName(); //get table name
 
         int blockOffset = 0,blockOffsetPre = -1; //current and previous block offset
         int byteOffset = 0; //current byte offset
         int tupleOffset = 0; //tuple offset in file
 
-        Block headBlock = BufferManager.read_block_from_disk_quote(tableName, 0); //get head block
+        Block headBlock = BufferManager.readBlockFromDiskQuote(tableName, 0); //get head block
         Block deleteBlock = null;
 
         if(headBlock == null)  //can't get from buffer
             throw new NullPointerException();
-        if(!check_condition(tableName, conditions))  //check condition
+        if(!checkCondition(tableName, conditions))  //check condition
             return 0;
 
         headBlock.lock(true); //lock head block for free list update
 
         int deleteNum = 0; // number of delete tuple
         for(int i = 0;i < address.size();i++) { //for each address
-            blockOffset = address.get(i).get_block_offset(); //read block and byte offset
-            byteOffset = address.get(i).get_byte_offset();
-            tupleOffset = get_tuple_offset(tableName, blockOffset, byteOffset);
+            blockOffset = address.get(i).getBlockOffset(); //read block and byte offset
+            byteOffset = address.get(i).getByteOffset();
+            tupleOffset = getTupleOffset(tableName, blockOffset, byteOffset);
 
             if(i == 0 || blockOffset != blockOffsetPre) { //not in same block
-                deleteBlock = BufferManager.read_block_from_disk_quote(tableName, blockOffset); // read a new block
+                deleteBlock = BufferManager.readBlockFromDiskQuote(tableName, blockOffset); // read a new block
                 if(deleteBlock == null) { //can't get from buffer
                     headBlock.lock(false);
                     return deleteNum;
                 }
             }
 
-            if (deleteBlock.read_integer(byteOffset) < 0) { //tuple is valid
+            if (deleteBlock.readInteger(byteOffset) < 0) { //tuple is valid
                 int j;
-                TableRow newRow = get_tuple(tableName, deleteBlock, byteOffset);
+                TableRow newRow = getTuple(tableName, deleteBlock, byteOffset);
                 for(j = 0;j < conditions.size();j++) { //check all conditions
                     if(!conditions.get(j).satisfy(tableName, newRow))
                         break;
                 }
                 if(j == conditions.size()) { //all satisfy
-                    deleteBlock.write_integer(byteOffset, 0); //set valid byte to 0
-                    deleteBlock.write_integer(byteOffset + 1, headBlock.read_integer(0)); //set free address
-                    headBlock.write_integer(0, tupleOffset); //write delete offset to head
+                    deleteBlock.writeInteger(byteOffset, 0); //set valid byte to 0
+                    deleteBlock.writeInteger(byteOffset + 1, headBlock.readInteger(0)); //set free address
+                    headBlock.writeInteger(0, tupleOffset); //write delete offset to head
                     deleteNum++;
-                    for(int k = 0;k < newRow.get_attribute_size();k++) { //delete index
-                        String attrName = CatalogManager.get_attribute_name(tableName, k);
-                        if (CatalogManager.is_index_key(tableName, attrName)) {
-                            String indexName = CatalogManager.get_index_name(tableName, attrName);
-                            Index index = CatalogManager.get_index(indexName);
-                            IndexManager.delete(index, newRow.get_attribute_value(k));
+                    for(int k = 0; k < newRow.getAttributeSize(); k++) { //delete index
+                        String attrName = CatalogManager.getAttributeName(tableName, k);
+                        if (CatalogManager.isIndexKey(tableName, attrName)) {
+                            String indexName = CatalogManager.getIndexName(tableName, attrName);
+                            Index index = CatalogManager.getIndex(indexName);
+                            IndexManager.delete(index, newRow.getAttributeValue(k));
                         }
                     }
                 }
@@ -289,16 +289,16 @@ public class RecordManager {
 
     //do projection on given result and projected attribute name in given table, return the projection result
     public static Vector<TableRow> project(String tableName, Vector<TableRow> result, Vector<String> projectName) throws Exception{
-        int attributeNum = CatalogManager.get_attribute_num(tableName);
+        int attributeNum = CatalogManager.getAttributeNum(tableName);
         Vector<TableRow> projectResult = new Vector<>();
         for(int i = 0;i < result.size();i++) { //for each tuple in result
             TableRow newRow = new TableRow();
             for(int j = 0;j < projectName.size();j++) { //for each project attribute name
-                int index = CatalogManager.get_attribute_index(tableName, projectName.get(j)); //get index
+                int index = CatalogManager.getAttributeIndex(tableName, projectName.get(j)); //get index
                 if (index == -1) {
                     throw new IllegalArgumentException("Can't not find attribute " + projectName.get(j));
                 } else {
-                    newRow.add_attribute_value(result.get(i).get_attribute_value(index)); //set attribute to tuple
+                    newRow.addAttributeValue(result.get(i).getAttributeValue(index)); //set attribute to tuple
                 }
             }
             projectResult.add(newRow);
@@ -308,13 +308,13 @@ public class RecordManager {
     }
 
     //store the record from buffer to file
-    public static void store_record() {
-        BufferManager.destruct_buffer_manager();
+    public static void storeRecord() {
+        BufferManager.destructBufferManager();
     }
 
     //get the length for one tuple to store in given table
-    private static int get_store_length(String tableName) {
-        int rowLen = CatalogManager.get_row_length(tableName); //actual length
+    private static int getStoreLength(String tableName) {
+        int rowLen = CatalogManager.getRowLength(tableName); //actual length
         if(rowLen > FieldType.INTSIZE) { //add a valid byte in head
             return rowLen + FieldType.CHARSIZE;
         } else { //empty address pointer + valid byte
@@ -323,8 +323,8 @@ public class RecordManager {
     }
 
     //get the block offset of given table and tuple offset
-    private static int get_block_offset(String tableName, int tupleOffset) {
-        int storeLen = get_store_length(tableName);
+    private static int getBlockOffset(String tableName, int tupleOffset) {
+        int storeLen = getStoreLength(tableName);
         int tupleInFirst = (Block.BLOCKSIZE - FieldType.INTSIZE) / storeLen; //number of tuples in first block
         int tupleInNext = Block.BLOCKSIZE / storeLen; //number of tuples in later block
 
@@ -336,12 +336,12 @@ public class RecordManager {
     }
 
     //get the byte offset of given table and tuple offset
-    private static int get_byte_offset(String tableName, int tupleOffset) {
-        int storeLen = get_store_length(tableName);
+    private static int getByteOffset(String tableName, int tupleOffset) {
+        int storeLen = getStoreLength(tableName);
         int tupleInFirst = (Block.BLOCKSIZE - FieldType.INTSIZE) / storeLen; //number of tuples in first block
         int tupleInNext = Block.BLOCKSIZE / storeLen; //number of tuples in later block
 
-        int blockOffset = get_block_offset(tableName, tupleOffset);
+        int blockOffset = getBlockOffset(tableName, tupleOffset);
         if(blockOffset == 0) { //in first block
             return tupleOffset * storeLen + FieldType.INTSIZE;
         } else { //in later block
@@ -350,8 +350,8 @@ public class RecordManager {
     }
 
     //get the tuple offset of given table, block offset and byte offset
-    private static int get_tuple_offset(String tableName, int blockOffset, int byteOffset) {
-        int storeLen = get_store_length(tableName);
+    private static int getTupleOffset(String tableName, int blockOffset, int byteOffset) {
+        int storeLen = getStoreLength(tableName);
         int tupleInFirst = (Block.BLOCKSIZE - FieldType.INTSIZE) / storeLen; //number of tuples in first block
         int tupleInNext = Block.BLOCKSIZE / storeLen; //number of tuples in later block
 
@@ -363,88 +363,88 @@ public class RecordManager {
     }
 
     //get the tuple from given table according to stored block and start byte offset
-    private static TableRow get_tuple(String tableName, Block block, int offset) {
-        int attributeNum = CatalogManager.get_attribute_num(tableName); //number of attribute
+    private static TableRow getTuple(String tableName, Block block, int offset) {
+        int attributeNum = CatalogManager.getAttributeNum(tableName); //number of attribute
         String attributeValue = null;
         TableRow result = new TableRow();
 
         offset++; //skip first valid flag
 
         for (int i = 0; i < attributeNum; i++) { //for each attribute
-            int length = CatalogManager.get_length(tableName, i); //get length
-            String type = CatalogManager.get_type(tableName, i); //get type
+            int length = CatalogManager.getLength(tableName, i); //get length
+            String type = CatalogManager.getType(tableName, i); //get type
             if (type.equals("CHAR")) { //char type
                 int first;
-                attributeValue = block.read_string(offset, length);
+                attributeValue = block.readString(offset, length);
                 first = attributeValue.indexOf(0);
                 first = first == -1 ? attributeValue.length() : first;
                 attributeValue = attributeValue.substring(0, first); //filter '\0'
 
             } else if (type.equals("INT")) { //integer type
-                attributeValue = String.valueOf(block.read_integer(offset));
+                attributeValue = String.valueOf(block.readInteger(offset));
             } else if (type.equals("FLOAT")) { //float type
-                attributeValue = String.valueOf(block.read_float(offset));
+                attributeValue = String.valueOf(block.readFloat(offset));
             }
             offset += length;
-            result.add_attribute_value(attributeValue); //add attribute to row
+            result.addAttributeValue(attributeValue); //add attribute to row
         }
         return result;
     }
 
     //write a tuple to given table according to stored block and start byte offset
-    private static void write_tuple(String tableName, TableRow data, Block block, int offset) {
-        int attributeNum = CatalogManager.get_attribute_num(tableName); //number of attribute
+    private static void writeTuple(String tableName, TableRow data, Block block, int offset) {
+        int attributeNum = CatalogManager.getAttributeNum(tableName); //number of attribute
 
-        block.write_integer(offset,-1); //set valid byte to 11111111
+        block.writeInteger(offset,-1); //set valid byte to 11111111
         offset++; //skip first valid flag
 
         for (int i = 0; i < attributeNum; i++) { //for each attribute
-            int length = CatalogManager.get_length(tableName, i); //get length
-            String type = CatalogManager.get_type(tableName, i); //get type
+            int length = CatalogManager.getLength(tableName, i); //get length
+            String type = CatalogManager.getType(tableName, i); //get type
             if (type.equals("CHAR")) { //char type
                 byte[] reset = new byte[length];
                 Arrays.fill(reset, (byte) 0);
-                block.write_data(offset, reset);
-                block.write_string(offset,data.get_attribute_value(i));
+                block.writeData(offset, reset);
+                block.writeString(offset,data.getAttributeValue(i));
             } else if (type.equals("INT")) { //integer type
-                block.write_integer(offset, Integer.parseInt(data.get_attribute_value(i)));
+                block.writeInteger(offset, Integer.parseInt(data.getAttributeValue(i)));
             } else if (type.equals("FLOAT")) { //float type
-                block.write_float(offset, Float.parseFloat(data.get_attribute_value(i)));
+                block.writeFloat(offset, Float.parseFloat(data.getAttributeValue(i)));
             }
             offset += length;
         }
     }
 
     //check whether the tuple statisfy the table attribute definition
-    private static boolean check_row(String tableName, TableRow data) throws Exception{
-        if (CatalogManager.get_attribute_num(tableName) != data.get_attribute_size())
+    private static boolean checkRow(String tableName, TableRow data) throws Exception{
+        if (CatalogManager.getAttributeNum(tableName) != data.getAttributeSize())
             throw new IllegalArgumentException("Attribute number doesn't match");
 
-        for (int i = 0;i < data.get_attribute_size();i++) {
-            String type = CatalogManager.get_type(tableName, i);
-            int length = CatalogManager.get_length(tableName, i);
-            if (!check_type(type, length, data.get_attribute_value(i)))
+        for (int i = 0; i < data.getAttributeSize(); i++) {
+            String type = CatalogManager.getType(tableName, i);
+            int length = CatalogManager.getLength(tableName, i);
+            if (!checkType(type, length, data.getAttributeValue(i)))
                 return false;
         }
         return true;
     }
 
     //check whether the condition statisfy the table attribute definition
-    private static boolean check_condition(String tableName, Vector<Condition> conditions) throws Exception{
+    private static boolean checkCondition(String tableName, Vector<Condition> conditions) throws Exception{
         for(int i = 0;i <conditions.size();i++) {
-            int index = CatalogManager.get_attribute_index(tableName, conditions.get(i).get_name());
+            int index = CatalogManager.getAttributeIndex(tableName, conditions.get(i).getName());
             if(index == -1)
-                throw new IllegalArgumentException("Can't not find attribute " + conditions.get(i).get_name());
-            String type = CatalogManager.get_type(tableName, index);
-            int length = CatalogManager.get_length(tableName ,index);
-            if (!check_type(type, length, conditions.get(i).get_value()))
+                throw new IllegalArgumentException("Can't not find attribute " + conditions.get(i).getName());
+            String type = CatalogManager.getType(tableName, index);
+            int length = CatalogManager.getLength(tableName ,index);
+            if (!checkType(type, length, conditions.get(i).getValue()))
                 return false;
         }
         return true;
     }
 
     //check whether the type correspond the attribute value
-    private static boolean check_type(String type, int length, String value) throws Exception{
+    private static boolean checkType(String type, int length, String value) throws Exception{
         switch (type) { //check type
             case "INT":
                 try {
