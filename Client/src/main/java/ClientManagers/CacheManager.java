@@ -20,12 +20,10 @@ public class CacheManager {
      * @return
      */
     public String getTable(String table) {
-        String res = cache.get(table);
-        if (res.isEmpty()) {
-            return null;
-        } else {
-            return res;
+        if (this.cache.containsKey(table)) {
+            return this.cache.get(table);
         }
+        return null;
     }
 
     /**

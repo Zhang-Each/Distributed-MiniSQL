@@ -10,11 +10,12 @@ public class ClientManager {
 
     public ClientManager() {
         cacheManager = new CacheManager();
-        commandManager = new CommandManager();
         socketManager = new SocketManager();
+        commandManager = new CommandManager(cacheManager, socketManager);
     }
 
     public void run() {
         System.out.println("Distributed-MiniSQL客户端启动！");
+        commandManager.run();
     }
 }
