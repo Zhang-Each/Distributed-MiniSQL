@@ -1,13 +1,10 @@
-package Service;
+package MasterManagers;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
-import org.apache.log4j.PropertyConfigurator;
 import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;

@@ -1,5 +1,4 @@
-import Service.MasterManager;
-import Service.ServiceManger;
+import MasterManagers.MasterManager;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;

@@ -34,6 +34,68 @@ public class Interpreter {
 
     }
 
+    public static void interpret(String sql) throws IOException {
+
+        String result = sql.trim().replaceAll("\\s+", " ");
+        String[] tokens = result.split(" ");
+        try {
+            if (tokens.length == 1 && tokens[0].equals(""))
+                throw new QException(0, 200, "No statement specified");
+            switch (tokens[0]) { //match keyword
+                case "create":
+                    if (tokens.length == 1)
+                        throw new QException(0, 201, "Can't find create object");
+                    switch (tokens[1]) {
+                        case "table":
+                            parseCreateTable(result);
+                            break;
+                        case "index":
+                            parseCreateIndex(result);
+                            break;
+                        default:
+                            throw new QException(0, 202, "Can't identify " + tokens[1]);
+                    }
+                    break;
+                case "drop":
+                    if (tokens.length == 1)
+                        throw new QException(0, 203, "Can't find drop object");
+                    switch (tokens[1]) {
+                        case "table":
+                            parseDropTable(result);
+                            break;
+                        case "index":
+                            parseDropIndex(result);
+                            break;
+                        default:
+                            throw new QException(0, 204, "Can't identify " + tokens[1]);
+                    }
+                    break;
+                case "select":
+                    parseSelect(result);
+                    break;
+                case "insert":
+                    parseInsert(result);
+                    break;
+                case "delete":
+                    parseDelete(result);
+                    break;
+                case "execfile":
+                    parseSqlFile(result);
+                    break;
+                case "show":
+                    parseShow(result);
+                    break;
+                default:
+                    throw new QException(0, 205, "Can't identify " + tokens[0]);
+            }
+        } catch (QException e) {
+            System.out.println(e.status + " " + QException.ex[e.type] + ": " + e.msg);
+        } catch (Exception e) {
+            System.out.println("Default error: " + e.getMessage());
+        }
+
+    }
+
     private static void interpret(BufferedReader reader) throws IOException {
         String restState = ""; //rest statement after ';' in last line
 

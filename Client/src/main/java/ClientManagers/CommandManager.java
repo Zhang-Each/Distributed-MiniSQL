@@ -1,5 +1,6 @@
 package ClientManagers;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -20,45 +21,56 @@ public class CommandManager {
     }
 
     // 在客户端做一个简单的interpreter，先对sql语句进行一个简单的解析，然后在客户端缓存中查询表是否已经存在
-    public void run() {
+    public void run()
+            throws IOException {
+
         Scanner input = new Scanner(System.in);
         String line = "";
         StringBuilder sql = new StringBuilder();
+
         while (true) {
             // 读入一句完整的SQL语句
-            System.out.println("请输入你想要执行的SQL语句：");
-            System.out.print("DisMiniSQL>>>");
+            System.out.println("新消息>>>请输入你想要执行的SQL语句：");
+            // System.out.print("DisMiniSQL>>>");
             while (line.isEmpty() || line.charAt(line.length() - 1) != ';') {
                 line = input.nextLine();
                 if (line.isEmpty()) {
-                    System.out.print("          >>>");
+                    //System.out.print("          >>>");
                     continue;
                 }
                 if (line.charAt(line.length() - 1) != ';') {
-                    System.out.print("          >>>");
+                    //System.out.print("          >>>");
                 }
                 sql.append(line);
+                sql.append(' ');
             }
             line = "";
             System.out.println(sql.toString());
-            if (sql.toString().equals("quit;")) {
+            if (sql.toString().trim().equals("quit;")) {
+                this.socketManager.closeMasterSocket();
                 break;
             }
             // 获得目标表名和索引名
             Map<String, String> target = this.interpreter(sql.toString());
             if (target.containsKey("error")) {
-                System.out.println("输入有误，请重试！");
+                System.out.println("新消息>>>输入有误，请重试！");
             }
+
             String table = target.get("name"), cache = "";
-            System.out.println("需要处理的表名是：" + table);
+            System.out.println("新消息>>>需要处理的表名是：" + table);
             if (target.get("cache").equals("true")) {
                 cache = cacheManager.getTable(table);
                 if (cache == null) {
-                    System.out.println("客户端缓存中不存在该表！");
+                    System.out.println("新消息>>>客户端缓存中不存在该表！");
                 } else {
-                    System.out.println("客户端缓存中存在该表！其对应的服务器是：" + cache);
+                    System.out.println("新消息>>>客户端缓存中存在该表！其对应的服务器是：" + cache);
                 }
             }
+
+            // 发送给主服务器，这部分功能待开发
+            //
+            //
+            //
             this.socketManager.process(sql.toString(), cache);
             sql = new StringBuilder();
         }
