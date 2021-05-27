@@ -1,23 +1,30 @@
 package ClientManagers;
 
+import ClientManagers.SocketManager.MasterSocketManager;
+import ClientManagers.SocketManager.RegionSocketManager;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 /**
  * 处理输入命令的Manager
  * 初步分析要处理的表名，调用cache查询客户端有无现存记录
  */
 public class CommandManager {
-    CacheManager cacheManager;
-    SocketManager socketManager;
 
-    public CommandManager(CacheManager cacheManager, SocketManager socketManager) {
+    CacheManager cacheManager;
+    MasterSocketManager masterSocketManager;
+    RegionSocketManager regionSocketManager;
+
+    public CommandManager(CacheManager cacheManager,
+                          MasterSocketManager masterSocketManager,
+                          RegionSocketManager regionSocketManager) {
         // 绑定一个cacheManager
         this.cacheManager = cacheManager;
-        this.socketManager = socketManager;
+        this.masterSocketManager = masterSocketManager;
+        this.regionSocketManager = regionSocketManager;
     }
 
     // 在客户端做一个简单的interpreter，先对sql语句进行一个简单的解析，然后在客户端缓存中查询表是否已经存在
@@ -38,18 +45,20 @@ public class CommandManager {
                     //System.out.print("          >>>");
                     continue;
                 }
-                if (line.charAt(line.length() - 1) != ';') {
-                    //System.out.print("          >>>");
-                }
+                //System.out.print("          >>>");
                 sql.append(line);
                 sql.append(' ');
             }
             line = "";
             System.out.println(sql.toString());
             if (sql.toString().trim().equals("quit;")) {
-                this.socketManager.closeMasterSocket();
+                this.masterSocketManager.closeMasterSocket();
+                if (this.regionSocketManager.socket != null) {
+                    this.regionSocketManager.closeRegionSocket();
+                }
                 break;
             }
+
             // 获得目标表名和索引名
             Map<String, String> target = this.interpreter(sql.toString());
             if (target.containsKey("error")) {
@@ -70,10 +79,18 @@ public class CommandManager {
             // 发送给主服务器，这部分功能待开发
             //
             //
-            //
-            this.socketManager.process(sql.toString(), cache);
+            // 这里是根据表名向主服务器发起查询，将端口号查询回来
+            // this.masterSocketManager.process(sql.toString(), cache);
+            // 这里是用已有的表名和端口号直接和RegionServer建立连接并且查询得到结果
+            this.connectToRegion(22222, sql.toString());
             sql = new StringBuilder();
         }
+    }
+
+    // 和从节点建立连接并发送SQL语句过去收到执行结果
+    public void connectToRegion(int PORT, String sql) throws IOException {
+        this.regionSocketManager.connectRegionServer(PORT);
+        this.regionSocketManager.sendToRegion(sql);
     }
 
     private Map<String, String> interpreter(String sql) {

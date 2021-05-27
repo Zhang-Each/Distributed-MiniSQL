@@ -1,5 +1,8 @@
 package ClientManagers;
 
+import ClientManagers.SocketManager.MasterSocketManager;
+import ClientManagers.SocketManager.RegionSocketManager;
+
 import java.io.IOException;
 
 /**
@@ -8,12 +11,14 @@ import java.io.IOException;
 public class ClientManager {
     private CacheManager cacheManager;
     private CommandManager commandManager;
-    private SocketManager socketManager;
+    private MasterSocketManager masterSocketManager;
+    private RegionSocketManager regionSocketManager;
 
     public ClientManager() throws IOException {
         cacheManager = new CacheManager();
-        socketManager = new SocketManager();
-        commandManager = new CommandManager(cacheManager, socketManager);
+        masterSocketManager = new MasterSocketManager();
+        regionSocketManager = new RegionSocketManager();
+        commandManager = new CommandManager(cacheManager, masterSocketManager, regionSocketManager);
     }
 
     public void run() throws IOException {

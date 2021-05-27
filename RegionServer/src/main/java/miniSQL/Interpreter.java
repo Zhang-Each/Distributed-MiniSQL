@@ -25,7 +25,9 @@ public class Interpreter {
             API.initial();
             System.out.println("Welcome to minisql~");
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            interpret(reader);
+            String res = interpret("select * from stu2;");
+            System.out.println("收到的结果：\n" + res);
+
         } catch (IOException e) {
             System.out.println("101 Run time error : IO exception occurs");
         } catch (Exception e) {
@@ -34,10 +36,14 @@ public class Interpreter {
 
     }
 
-    public static void interpret(String sql) throws IOException {
+    public static String interpret(String sql) throws IOException {
+        // 去掉最后的分号，否则有bug
+        sql = sql.substring(0, sql.length() - 2);
+        String resultValue = "";
 
         String result = sql.trim().replaceAll("\\s+", " ");
         String[] tokens = result.split(" ");
+
         try {
             if (tokens.length == 1 && tokens[0].equals(""))
                 throw new QException(0, 200, "No statement specified");
@@ -71,7 +77,7 @@ public class Interpreter {
                     }
                     break;
                 case "select":
-                    parseSelect(result);
+                    resultValue += parseSelect(result);
                     break;
                 case "insert":
                     parseInsert(result);
@@ -93,13 +99,18 @@ public class Interpreter {
         } catch (Exception e) {
             System.out.println("Default error: " + e.getMessage());
         }
-
+        return resultValue;
     }
 
-    private static void interpret(BufferedReader reader) throws IOException {
-        String restState = ""; //rest statement after ';' in last line
+    private static String interpret(BufferedReader reader) throws IOException {
+        String restState = "";
+        //rest statement after ';' in last line
 
-        while (true) { //read for each statement
+
+
+        while (true) {
+            StringBuilder returnValue = new StringBuilder();
+            //read for each statement
             int index;
             String line;
             StringBuilder statement = new StringBuilder();
@@ -117,7 +128,8 @@ public class Interpreter {
                     line = reader.readLine();
                     if (line == null) { //read the file tail
                         reader.close();
-                        return;
+                        break;
+                        // return "";
                     } else if (line.contains(";")) { //last line
                         index = line.indexOf(";");
                         statement.append(line.substring(0, index));
@@ -170,7 +182,7 @@ public class Interpreter {
                         }
                         break;
                     case "select":
-                        parseSelect(result);
+                        returnValue.append(parseSelect(result));
                         break;
                     case "insert":
                         parseInsert(result);
@@ -195,7 +207,9 @@ public class Interpreter {
             } catch (Exception e) {
                 System.out.println("Default error: " + e.getMessage());
             }
+            return returnValue.toString();
         }
+
     }
 
     private static void parseShow(String statement) throws Exception {
@@ -365,7 +379,7 @@ public class Interpreter {
         System.out.println("-->Drop index " + indexName + " successfully");
     }
 
-    private static void parseSelect(String statement) throws Exception {
+    private static String parseSelect(String statement) throws Exception {
         //select ... from ... where ...
         String attrStr = Utils.substring(statement, "select ", " from");
         String tabStr = Utils.substring(statement, "from ", " where");
@@ -374,22 +388,27 @@ public class Interpreter {
         Vector<String> attrNames;
         long startTime, endTime;
         startTime = System.currentTimeMillis();
-        if (attrStr.equals(""))
-            throw new QException(0, 250, "Can not find key word 'from' or lack of blank before from!");
+
+        String result = "";
+
+        if (attrStr.equals("")) {
+            return "Can not find key word 'from' or lack of blank before from!";
+        }
+            //throw new QException(0, 250, );
         if (attrStr.trim().equals("*")) {
             //select all attributes
             if (tabStr.equals("")) {  // select * from [];
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), new Vector<>());
                 endTime = System.currentTimeMillis();
-                Utils.printRows(ret, tabStr);
+                result += Utils.printRows(ret, tabStr);
             } else { //select * from [] where [];
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
                 conditions = Utils.createConditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, new Vector<>(), conditions);
                 endTime = System.currentTimeMillis();
-                Utils.printRows(ret, tabStr);
+                result += Utils.printRows(ret, tabStr);
             }
         } else {
             attrNames = Utils.convert(attrStr.split(" *, *")); //get attributes list
@@ -397,18 +416,20 @@ public class Interpreter {
                 tabStr = Utils.substring(statement, "from ", "");
                 Vector<TableRow> ret = API.select(tabStr, attrNames, new Vector<>());
                 endTime = System.currentTimeMillis();
-                Utils.printRows(ret, tabStr);
+                result += Utils.printRows(ret, tabStr);
             } else { //select [attr] from [table] where
                 String[] conSet = conStr.split(" *and *");
                 //get condition vector
                 conditions = Utils.createConditon(conSet);
                 Vector<TableRow> ret = API.select(tabStr, attrNames, conditions);
                 endTime = System.currentTimeMillis();
-                Utils.printRows(ret, tabStr);
+                result += Utils.printRows(ret, tabStr);
             }
         }
         double usedTime = (endTime - startTime) / 1000.0;
         System.out.println("Finished in " + usedTime + " s");
+        result += "Finished in " + usedTime + " s";
+        return result;
     }
 
     private static void parseInsert(String statement) throws Exception {
@@ -599,10 +620,12 @@ class Utils {
         return len;
     }
 
-    public static void printRows(Vector<TableRow> tab, String tabName) {
+    public static String printRows(Vector<TableRow> tab, String tabName) {
+        // 该函数经过修改，将所有的输出结果转化成了String返回
+        StringBuilder result = new StringBuilder();
         if (tab.size() == 0) {
-            System.out.println("-->Query ok! 0 rows are selected");
-            return;
+            System.out.println();
+            return "-->Query ok! 0 rows are selected\n";
         }
         int attrSize = tab.get(0).getAttributeSize();
         int cnt = 0;
@@ -613,21 +636,36 @@ class Utils {
             if (attrName.length() > len) len = attrName.length();
             v.add(len);
             String format = "|%-" + len + "s";
+
             System.out.printf(format, attrName);
+            result.append(String.format(format, attrName));
+            //result.append(format).append(attrName);
             cnt = cnt + len + 1;
         }
         cnt++;
+
         System.out.println("|");
-        for (int i = 0; i < cnt; i++) System.out.print("-");
+        result.append("|\n");
+
+        for (int i = 0; i < cnt; i++) {
+            System.out.print("-");
+            result.append("-");
+        }
         System.out.println();
+        result.append("\n");
         for (int i = 0; i < tab.size(); i++) {
             TableRow row = tab.get(i);
             for (int j = 0; j < attrSize; j++) {
                 String format = "|%-" + v.get(j) + "s";
                 System.out.printf(format, row.getAttributeValue(j));
+                // result.append(format).append(row.getAttributeValue(j));
+                result.append(String.format(format, row.getAttributeValue(j)));
             }
             System.out.println("|");
+            result.append("|\n");
         }
         System.out.println("-->Query ok! " + tab.size() + " rows are selected");
+        result.append("-->Query ok! ").append(tab.size()).append(" rows are selected");
+        return result.toString();
     }
 }
