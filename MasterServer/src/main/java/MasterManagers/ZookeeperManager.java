@@ -12,11 +12,17 @@ import java.util.*;
 
 public class ZookeeperManager {
     private ZooKeeper zooKeeper;
-    private final String HOST = "localhost:2181";
+    //ZooKeeper集群访问的端口
+    public static final String ZK_HOST = "localhost:2181";
+    //ZooKeeper会话超时时间
+    public static final Integer ZK_SESSION_TIMEOUT = 3000;
+    //ZooKeeper连接超时时间
+    public static final Integer ZK_CONNECTION_TIMEOUT = 3000;
+
 
     public ZookeeperManager() throws IOException {
         // 初始化一个zookeeper节点
-        zooKeeper = new ZooKeeper(HOST, 2000, new Watcher() {
+        zooKeeper = new ZooKeeper(ZK_HOST, 2000, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
                 // 发生变更的节点路径
