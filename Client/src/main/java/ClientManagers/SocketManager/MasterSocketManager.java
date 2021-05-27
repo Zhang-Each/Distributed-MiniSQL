@@ -1,4 +1,4 @@
-package ClientManagers;
+package ClientManagers.SocketManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class SocketManager {
+public class MasterSocketManager {
 
     private Socket socket = null;
     private BufferedReader input = null;
@@ -18,7 +18,7 @@ public class SocketManager {
     private final String master = "localhost";
     private final int PORT = 12345;
 
-    public SocketManager() throws IOException {
+    public MasterSocketManager() throws IOException {
         socket = new Socket(master, PORT);
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new PrintWriter(socket.getOutputStream(), true);
@@ -78,7 +78,7 @@ public class SocketManager {
     class InfoListener extends Thread {
         @Override
         public void run() {
-            System.out.println("新消息>>>客户端监听线程启动！");
+            System.out.println("新消息>>>客户端的主服务器监听线程启动！");
             while (isRunning) {
                 if (socket.isClosed() || socket.isInputShutdown() || socket.isOutputShutdown()) {
                     isRunning = false;

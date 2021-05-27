@@ -7,15 +7,16 @@ import miniSQL.CATALOGMANAGER.Attribute;
 import miniSQL.CATALOGMANAGER.CatalogManager;
 import miniSQL.CATALOGMANAGER.Table;
 
+import java.io.IOException;
 import java.util.Vector;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         API api = new API();
         // buffer_unit_test(); //Buffer Manager test function
-        catalog_unit_test1();
-        catalog_unit_test2();
+        //catalog_unit_test1();
+        //catalog_unit_test2();
     }
 
     public static void buffer_unit_test() {

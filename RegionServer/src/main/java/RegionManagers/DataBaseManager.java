@@ -1,3 +1,5 @@
+package RegionManagers;
+
 import miniSQL.CATALOGMANAGER.CatalogManager;
 import miniSQL.CATALOGMANAGER.Table;
 import miniSQL.INDEXMANAGER.Index;
