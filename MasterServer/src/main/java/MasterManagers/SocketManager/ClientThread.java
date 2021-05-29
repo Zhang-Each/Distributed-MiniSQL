@@ -1,6 +1,6 @@
 package MasterManagers.SocketManager;
 
-import MasterManagers.ServiceManger;
+import MasterManagers.ClientServiceManger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,17 +15,17 @@ import java.net.Socket;
 public class ClientThread implements Runnable  {
 
     private Socket socket;
-    private ServiceManger serviceManger;
+    private ClientServiceManger clientServiceManger;
     private boolean isRunning = false;
 
 
     public BufferedReader input = null;
     public PrintWriter output = null;
 
-    public ClientThread(Socket socket, ServiceManger serviceManger)
+    public ClientThread(Socket socket, ClientServiceManger clientServiceManger)
             throws IOException {
         this.socket = socket;
-        this.serviceManger = serviceManger;
+        this.clientServiceManger = clientServiceManger;
         this.isRunning = true;
         // 基于Socket建立输入输出流
         this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
