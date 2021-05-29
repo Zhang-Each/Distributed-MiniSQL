@@ -25,8 +25,8 @@ public class SocketManager {
             // 等待与之连接的客户端
             Socket socket = serverSocket.accept();
             // 建立子线程并启动
-            ClientThread clientThread = new ClientThread(socket, clientServiceManger);
-            Thread thread = new Thread(clientThread);
+            SocketThread socketThread = new SocketThread(socket, clientServiceManger);
+            Thread thread = new Thread(socketThread);
             thread.start();
         }
     }

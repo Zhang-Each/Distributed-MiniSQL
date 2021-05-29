@@ -12,7 +12,7 @@ import java.net.Socket;
  * 客户端socket线程，负责和客户端进行通信
  */
 
-public class ClientThread implements Runnable  {
+public class SocketThread implements Runnable  {
 
     private Socket socket;
     private ClientServiceManger clientServiceManger;
@@ -22,7 +22,7 @@ public class ClientThread implements Runnable  {
     public BufferedReader input = null;
     public PrintWriter output = null;
 
-    public ClientThread(Socket socket, ClientServiceManger clientServiceManger)
+    public SocketThread(Socket socket, ClientServiceManger clientServiceManger)
             throws IOException {
         this.socket = socket;
         this.clientServiceManger = clientServiceManger;
@@ -65,6 +65,13 @@ public class ClientThread implements Runnable  {
     //
     public void commandProcess(String cmd) {
         System.out.println("要处理的命令：" + cmd);
-        this.sendToClient("已收到发送的信息！");
+        String result = "";
+        if (cmd.startsWith("<client>")) {
+            // 去掉前缀之后开始处理
+            result = ClientProcessor.processClientCommand(cmd.substring(8));
+        } else if (cmd.startsWith("<region>")) {
+            result = RegionProcessor.processRegionCommand(cmd.substring(8));
+        }
+        this.sendToClient(result);
     }
 }

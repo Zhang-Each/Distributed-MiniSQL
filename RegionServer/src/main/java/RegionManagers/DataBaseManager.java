@@ -22,14 +22,17 @@ public class DataBaseManager {
     /**
      * 获取当前从节点中所有数据表和索引的信息，用于后续发送给主节点，并进行查询
      */
-    public void showMetaInfo() {
-        System.out.println(tables.size());
+    public String getMetaInfo() {
+        StringBuilder result = new StringBuilder();
         for (Map.Entry<String, Table> stringTableEntry : tables.entrySet()) {
-            System.out.println(((Map.Entry) stringTableEntry).getKey());
+            //System.out.println(((Map.Entry) stringTableEntry).getKey());
+            result.append(((Map.Entry) stringTableEntry).getKey() + " ");
         }
         for (Map.Entry<String, Index> indexEntry : indices.entrySet()) {
             System.out.println(((Map.Entry) indexEntry).getKey());
+            result.append(((Map.Entry) indexEntry).getKey() + " ");
         }
+        return result.toString();
     }
 
 }

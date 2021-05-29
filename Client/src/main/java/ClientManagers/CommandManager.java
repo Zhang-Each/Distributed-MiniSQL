@@ -80,7 +80,7 @@ public class CommandManager {
             //
             //
             // 这里是根据表名向主服务器发起查询，将端口号查询回来
-            // this.masterSocketManager.process(sql.toString(), cache);
+            //this.masterSocketManager.process(sql.toString(), cache);
             // 这里是用已有的表名和端口号直接和RegionServer建立连接并且查询得到结果
             this.connectToRegion(22222, sql.toString());
             sql = new StringBuilder();

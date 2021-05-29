@@ -27,8 +27,9 @@ public class MasterSocketManager {
     }
 
     // 像主服务器发送信息的api
+    // 要加上client标签，可以被主服务器识别
     public void sendToMaster(String info) {
-        output.println(info);
+        output.println("<client>" + info);
     }
 
     // 接收来自master server的信息并显示
