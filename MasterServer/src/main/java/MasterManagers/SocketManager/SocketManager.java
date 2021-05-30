@@ -35,6 +35,7 @@ public class SocketManager {
  *  1.如果是从节点的表的变更通知，如删除某张表，则更新主节点的元数据表
  *  2.如果是客户端的请求，则查询表对应的从节点在哪里，并返回相应结果
  */
-    public void startService() {
+    public void startService() throws InterruptedException {
+        Thread.sleep(200000);
     }
 }
