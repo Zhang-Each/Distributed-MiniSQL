@@ -5,7 +5,8 @@ public class ClientProcessor {
 
     public static String processClientCommand(String cmd) {
         System.out.println("要处理的命令：" + cmd);
-        return "收到了客户端的请求。";
+        // 一个简单的测试，stu2位于运行在端口12345的Region上面，观察其是否能正常使用
+        return "<table>stu2 22222";
     }
 
 }

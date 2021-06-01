@@ -1,10 +1,14 @@
 package ClientManagers.SocketManager;
 
+import ClientManagers.ClientManager;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MasterSocketManager {
 
@@ -14,15 +18,23 @@ public class MasterSocketManager {
     private boolean isRunning = false;
     private Thread infoListener;
 
+    private ClientManager clientManager;
+
     // 服务器的IP和端口号
     private final String master = "localhost";
     private final int PORT = 12345;
 
-    public MasterSocketManager() throws IOException {
+    // 使用map来存储需要处理的表名-sql语句的对应关系
+    Map<String, String> commandMap = new HashMap<>();
+
+    public MasterSocketManager(ClientManager clientManager) throws IOException {
         socket = new Socket(master, PORT);
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new PrintWriter(socket.getOutputStream(), true);
         isRunning = true;
+
+        this.clientManager = clientManager;
+
         this.listenToMaster(); // 开启监听线程
     }
 
@@ -33,7 +45,9 @@ public class MasterSocketManager {
     }
 
     // 接收来自master server的信息并显示
-    public void receiveFromMaster() throws IOException {
+    // 新增代码，查询主服务器中存储的表名和对应的端口号
+    // 主服务器返回的内容的格式应该是"<table>table port"，因此args[0]和[1]分别代表了表名和对应的端口号
+    public void receiveFromMaster() throws IOException, InterruptedException {
         String line = null;
         if (socket.isClosed() || socket.isInputShutdown() || socket.isOutputShutdown()) {
             System.out.println("新消息>>>Socket已经关闭!");
@@ -42,6 +56,19 @@ public class MasterSocketManager {
         }
         if (line != null) {
             System.out.println("新消息>>>从服务器收到的信息是：" + line);
+            if (line.startsWith("<table>")) {
+                String[] args = line.substring(7).split(" ");
+                String sql = commandMap.get(args[0]);
+                System.out.println(sql);
+                // 如果查到的端口号有对应的表
+                if (sql != null) {
+                    int PORT = Integer.parseInt(args[1]);
+                    commandMap.remove(args[0]);
+                    // 查询到之后在client的cache中设置一个缓存
+                    this.clientManager.cacheManager.setCache(args[0], PORT);
+                    this.clientManager.connectToRegion(PORT, sql);
+                }
+            }
         }
 
     }
@@ -54,15 +81,14 @@ public class MasterSocketManager {
 
     // 将sql语句发送到主服务器进一步处理，这里还有待进一步开发，目前仅供实验
     // 进一步开发在这个方法里面扩展
-    //
-    //
-    //
-    //
-    //
-    public void process(String sql, String server) {
+
+    public void process(String sql, String table) {
         // 来处理sql语句
         System.out.println(sql);
-        this.sendToMaster(sql);
+        this.commandMap.put(table, sql);
+        // 用<table>前缀表示要查某个表名对应的端口号
+        System.out.println("存入table的是" + table + " " + sql);
+        this.sendToMaster("<table>" + table);
     }
 
     // 关闭socket的方法，在输入quit的时候直接调用
@@ -88,7 +114,7 @@ public class MasterSocketManager {
 
                 try {
                     receiveFromMaster();
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
 

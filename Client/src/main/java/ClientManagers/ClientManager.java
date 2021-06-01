@@ -14,20 +14,20 @@ import java.util.Scanner;
 
 public class ClientManager {
 
-    CacheManager cacheManager;
-    MasterSocketManager masterSocketManager;
-    RegionSocketManager regionSocketManager;
+    public CacheManager cacheManager;
+    public MasterSocketManager masterSocketManager;
+    public RegionSocketManager regionSocketManager;
 
     public ClientManager() throws IOException {
         // 绑定一个cacheManager
         this.cacheManager = new CacheManager();
-        this.masterSocketManager = new MasterSocketManager();
+        this.masterSocketManager = new MasterSocketManager(this);
         this.regionSocketManager = new RegionSocketManager();
     }
 
     // 在客户端做一个简单的interpreter，先对sql语句进行一个简单的解析，然后在客户端缓存中查询表是否已经存在
     public void run()
-            throws IOException {
+            throws IOException, InterruptedException {
         System.out.println("Distributed-MiniSQL客户端启动！");
         Scanner input = new Scanner(System.in);
         String line = "";
@@ -63,10 +63,12 @@ public class ClientManager {
                 System.out.println("新消息>>>输入有误，请重试！");
             }
 
-            String table = target.get("name"), cache = "";
+            String table = target.get("name");
+            table = table.substring(0, table.length() - 1);
+            Integer cache = null;
             System.out.println("新消息>>>需要处理的表名是：" + table);
             if (target.get("cache").equals("true")) {
-                cache = cacheManager.getTable(table);
+                cache = cacheManager.getCache(table);
                 if (cache == null) {
                     System.out.println("新消息>>>客户端缓存中不存在该表！");
                 } else {
@@ -74,20 +76,21 @@ public class ClientManager {
                 }
             }
 
-            // 发送给主服务器，这部分功能待开发
-            //
-            //
-            // 这里是根据表名向主服务器发起查询，将端口号查询回来
-            //this.masterSocketManager.process(sql.toString(), cache);
-            // 这里是用已有的表名和端口号直接和RegionServer建立连接并且查询得到结果
-            this.connectToRegion(22222, sql.toString());
+            // 如果cache里面没有找到表所对应的端口号，那么就去masterSocket里面查询
+            if (cache == null) {
+                this.masterSocketManager.process(sql.toString(), table);
+            } else {
+                // 如果查到了端口号就直接在RegionSocketManager中进行连接
+                this.connectToRegion(cache, sql.toString());
+            }
             sql = new StringBuilder();
         }
     }
 
     // 和从节点建立连接并发送SQL语句过去收到执行结果
-    public void connectToRegion(int PORT, String sql) throws IOException {
+    public void connectToRegion(int PORT, String sql) throws IOException, InterruptedException {
         this.regionSocketManager.connectRegionServer(PORT);
+        Thread.sleep(100);
         this.regionSocketManager.sendToRegion(sql);
     }
 
