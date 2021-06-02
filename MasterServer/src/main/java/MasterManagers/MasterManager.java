@@ -7,12 +7,14 @@ import java.io.IOException;
 public class MasterManager {
     private ZookeeperManager zookeeperManager;
     private SocketManager socketManager;
+    private TableManger tableManger;
 
     private final int PORT = 12345;
 
     public MasterManager() throws IOException, InterruptedException {
-        zookeeperManager = new ZookeeperManager();
-        socketManager = new SocketManager(PORT);
+        tableManger = new TableManger();
+        zookeeperManager = new ZookeeperManager(tableManger);
+        socketManager = new SocketManager(PORT,tableManger);
     }
 
     public void initialize() throws InterruptedException, IOException {

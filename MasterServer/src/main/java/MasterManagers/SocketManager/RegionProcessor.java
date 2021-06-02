@@ -6,7 +6,7 @@ import java.net.Socket;
 
 /**
  * 1. 从节点启动，先完成zookeeper的注册，再将本节点存储的表名通过socket都发给主节点，格式是[1]name name name。
- *    如果没有存储表，则发[1]
+ *    如果没有存储表，则不用发
  * 2. 等待从节点的表格更改消息[2]name delete/add
  */
 public class RegionProcessor {

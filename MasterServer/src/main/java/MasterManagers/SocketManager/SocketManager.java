@@ -11,9 +11,9 @@ public class SocketManager {
     private ServerSocket serverSocket;
     private TableManger tableManger;
 
-    public SocketManager(int port)
+    public SocketManager(int port,TableManger tableManger)
             throws IOException, InterruptedException {
-        this.tableManger = new TableManger();
+        this.tableManger = tableManger;
         this.serverSocket = new ServerSocket(port);
     }
 

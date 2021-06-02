@@ -23,7 +23,7 @@ public class ClientProcessor {
         if (cmd.startsWith("[1]")) {
             result = "[1]"+tableManger.get(cmd.substring(3));
         } else if (cmd.startsWith("[2]")) {
-            result = "[1]"+tableManger.getServer();
+            result = "[1]"+tableManger.getServerList();
         }
         return result;
     }

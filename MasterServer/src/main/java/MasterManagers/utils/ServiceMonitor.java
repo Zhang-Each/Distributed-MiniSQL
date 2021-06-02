@@ -1,10 +1,13 @@
 package MasterManagers.utils;
 
+import MasterManagers.TableManger;
 import MasterManagers.ZookeeperManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.*;
+
+import java.util.Arrays;
 
 /**
  * ZooKeeper的节点监视器，将发生的事件进行处理，
@@ -14,10 +17,12 @@ public class ServiceMonitor implements PathChildrenCacheListener {
 
     private CuratorHolder client;
     private ServiceStrategyExecutor strategyExecutor;
+    private TableManger tableManger;
 
-    public ServiceMonitor(CuratorHolder curatorClientHolder) {
+    public ServiceMonitor(CuratorHolder curatorClientHolder, TableManger tableManger) {
         this.strategyExecutor = new ServiceStrategyExecutor();
         this.client = curatorClientHolder;
+        this.tableManger = tableManger;
     }
 
     @Override
@@ -36,7 +41,8 @@ public class ServiceMonitor implements PathChildrenCacheListener {
             case CHILD_REMOVED:
                 log.info("服务器目录删除节点: " + pathChildrenCacheEvent.getData().getPath());
                 eventServerDisappear(
-                        eventPath.replaceFirst(ZookeeperManager.ZNODE + "/", ""));
+                        eventPath.replaceFirst(ZookeeperManager.ZNODE + "/", ""),
+                        new String(pathChildrenCacheEvent.getData().getData()));
                 break;
             case CHILD_UPDATED:
                 log.info("服务器目录更新节点: " + pathChildrenCacheEvent.getData().getPath());
@@ -56,6 +62,8 @@ public class ServiceMonitor implements PathChildrenCacheListener {
      */
     public void eventServerAppear(String hostName, String hostUrl) {
         log.warn("新增服务器节点：主机名 {}, 地址 {}", hostName, hostUrl);
+        tableManger.addServer(hostUrl);
+        System.out.println(tableManger.getNumOfServer());
 
 //        if (ServiceStrategyExecutor.DataHolder.dataServers.get(hostName) != null) {
 //            // 该服务器已经存在，即从失效状态中恢复
@@ -73,11 +81,12 @@ public class ServiceMonitor implements PathChildrenCacheListener {
 
     /**
      * 处理服务器节点失效事件
-     *
-     * @param hostName
-     */
-    public void eventServerDisappear(String hostName) {
-        log.warn("删除服务器节点：主机名 {}", hostName);
+     *  @param hostName
+     * @param hostUrl*/
+    public void eventServerDisappear(String hostName, String hostUrl) {
+        log.warn("删除服务器节点：主机名 {}, 地址 {}", hostName, hostUrl);
+        tableManger.deleteServer(hostUrl);
+        System.out.println(tableManger.getNumOfServer());
 //        DataServer thisServer;
 //        if (ServiceStrategyExecutor.DataHolder.dataServers.get(hostName) == null) {
 //            throw new RuntimeException("需要删除信息的服务器不存在于服务器列表中");

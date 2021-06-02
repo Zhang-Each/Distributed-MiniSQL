@@ -15,7 +15,7 @@ import java.util.*;
 
 @Slf4j
 public class ZookeeperManager implements Runnable{
-    private ZooKeeper zooKeeper;
+    private TableManger tableManger;
     //ZooKeeper集群访问的端口
     public static final String ZK_HOST = "localhost:2181";
     //ZooKeeper会话超时时间
@@ -26,6 +26,10 @@ public class ZookeeperManager implements Runnable{
     public static final String ZNODE = "/db";
     //ZooKeeper集群内各个服务器注册自身信息的节点名前缀
     public static final String HOST_NAME_PREFIX = "Region_";
+
+    public ZookeeperManager(TableManger tableManger) {
+        this.tableManger = tableManger;
+    }
 
     @Override
     public void run() {
@@ -43,7 +47,7 @@ public class ZookeeperManager implements Runnable{
             }
 
             // 开始监听服务器目录，如果有节点的变化，则处理相应事件
-            curatorClientHolder.monitorChildrenNodes(ZNODE, new ServiceMonitor(curatorClientHolder));
+            curatorClientHolder.monitorChildrenNodes(ZNODE, new ServiceMonitor(curatorClientHolder,tableManger));
         } catch (Exception e) {
             log.warn(e.getMessage(),e);
         }
