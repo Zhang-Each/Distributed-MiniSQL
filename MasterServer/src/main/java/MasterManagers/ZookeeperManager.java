@@ -41,7 +41,6 @@ public class ZookeeperManager implements Runnable{
             if (!curatorClientHolder.checkNodeExist(ZNODE)){
                 curatorClientHolder.createNode(ZNODE,"服务器主目录");
             }
-            System.out.println("服务器目录下有子节点：" + curatorClientHolder.getChildren(ZNODE));
 
             // 开始监听服务器目录，如果有节点的变化，则处理相应事件
             curatorClientHolder.monitorChildrenNodes(ZNODE, new ServiceMonitor(curatorClientHolder));

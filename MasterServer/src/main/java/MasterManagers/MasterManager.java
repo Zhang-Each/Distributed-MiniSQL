@@ -15,7 +15,7 @@ public class MasterManager {
         socketManager = new SocketManager(PORT);
     }
 
-    public void initialize() throws InterruptedException {
+    public void initialize() throws InterruptedException, IOException {
         // 第一个线程在启动时向ZooKeeper发送请求，获得ZNODE目录下的信息并且持续监控，如果发生了目录的变化则执行回调函数，处理相应策略。
         Thread zkServiceThread = new Thread(zookeeperManager);
         zkServiceThread.start();

@@ -1,6 +1,6 @@
 package MasterManagers.SocketManager;
 
-import MasterManagers.ClientServiceManger;
+import MasterManagers.TableManger;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -9,33 +9,30 @@ import java.net.Socket;
 public class SocketManager {
 
     private ServerSocket serverSocket;
-    private ClientServiceManger clientServiceManger;
+    private TableManger tableManger;
 
     public SocketManager(int port)
             throws IOException, InterruptedException {
-        this.clientServiceManger = new ClientServiceManger();
+        this.tableManger = new TableManger();
         this.serverSocket = new ServerSocket(port);
-        this.listenClient();
     }
 
-    public void listenClient()
-            throws InterruptedException, IOException {
+    /**
+     * 1. 主节点启动
+     * 2. 从节点启动，先完成zookeeper的注册，再将本节点存储的表名通过socket都发给主节点，格式是<region>[1]name name name
+     * 3. 等待从节点的表格更改消息<region>[2]name delete/add
+     * 4. 等待客户端的表格查询信息<client>[1]name,返回<master>[1]ip
+     * 5. 等待客户端的表格创建信息<client>[2]name,做负载均衡处理后返回<master>[2]ip
+     */
+    public void startService() throws InterruptedException, IOException {
         while (true) {
             Thread.sleep(200);
             // 等待与之连接的客户端
             Socket socket = serverSocket.accept();
             // 建立子线程并启动
-            SocketThread socketThread = new SocketThread(socket, clientServiceManger);
+            SocketThread socketThread = new SocketThread(socket,tableManger);
             Thread thread = new Thread(socketThread);
             thread.start();
         }
-    }
-/**
- *  首先依次与各从节点通信，获得从节点存储的数据表。之后开始监听，并对消息进行分类处理
- *  1.如果是从节点的表的变更通知，如删除某张表，则更新主节点的元数据表
- *  2.如果是客户端的请求，则查询表对应的从节点在哪里，并返回相应结果
- */
-    public void startService() throws InterruptedException {
-        Thread.sleep(200000);
     }
 }

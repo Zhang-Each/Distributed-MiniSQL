@@ -1,6 +1,6 @@
 package MasterManagers.SocketManager;
 
-import MasterManagers.ClientServiceManger;
+import MasterManagers.TableManger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,28 +14,25 @@ import java.net.Socket;
 
 public class SocketThread implements Runnable  {
 
-    private Socket socket;
-    private ClientServiceManger clientServiceManger;
     private boolean isRunning = false;
-
+    private ClientProcessor clientProcessor;
+    private RegionProcessor regionProcessor;
 
     public BufferedReader input = null;
     public PrintWriter output = null;
 
-    public SocketThread(Socket socket, ClientServiceManger clientServiceManger)
-            throws IOException {
-        this.socket = socket;
-        this.clientServiceManger = clientServiceManger;
+    public SocketThread(Socket socket, TableManger tableManger) throws IOException {
+        this.clientProcessor = new ClientProcessor(tableManger,socket);
+        this.regionProcessor = new RegionProcessor(tableManger,socket);
         this.isRunning = true;
         // 基于Socket建立输入输出流
         this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.output = new PrintWriter(socket.getOutputStream(), true);
-        System.out.println("服务端建立了新的客户端子线程：" + socket.getPort());
+        System.out.println("服务端建立了新的客户端子线程:" + socket.getInetAddress() +":"+ socket.getPort());
     }
 
     @Override
     public void run() {
-        System.out.println("服务器监听客户端消息中" + socket.getInetAddress() + socket.getPort());
         String line;
         try {
             while (isRunning) {
@@ -55,23 +52,16 @@ public class SocketThread implements Runnable  {
         output.println(info);
     }
 
-    // 处理接收到的命令，和出服务器的交互就在这一方法下面继续扩展
-    //
-    //
-    //
-    //
-    //
-    //
-    //
     public void commandProcess(String cmd) {
         System.out.println("要处理的命令：" + cmd);
         String result = "";
         if (cmd.startsWith("<client>")) {
             // 去掉前缀之后开始处理
-            result = ClientProcessor.processClientCommand(cmd.substring(8));
+            result = clientProcessor.processClientCommand(cmd.substring(8));
         } else if (cmd.startsWith("<region>")) {
-            result = RegionProcessor.processRegionCommand(cmd.substring(8));
+            result = regionProcessor.processRegionCommand(cmd.substring(8));
         }
-        this.sendToClient(result);
+        if(!result.equals(""))
+            this.sendToClient(result);
     }
 }
