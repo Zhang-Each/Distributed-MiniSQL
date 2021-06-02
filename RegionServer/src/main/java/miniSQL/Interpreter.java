@@ -53,10 +53,10 @@ public class Interpreter {
                         throw new QException(0, 201, "Can't find create object");
                     switch (tokens[1]) {
                         case "table":
-                            parseCreateTable(result);
+                            resultValue += parseCreateTable(result);
                             break;
                         case "index":
-                            parseCreateIndex(result);
+                            resultValue += parseCreateIndex(result);
                             break;
                         default:
                             throw new QException(0, 202, "Can't identify " + tokens[1]);
@@ -67,10 +67,10 @@ public class Interpreter {
                         throw new QException(0, 203, "Can't find drop object");
                     switch (tokens[1]) {
                         case "table":
-                            parseDropTable(result);
+                            resultValue += parseDropTable(result);
                             break;
                         case "index":
-                            parseDropIndex(result);
+                            resultValue += parseDropIndex(result);
                             break;
                         default:
                             throw new QException(0, 204, "Can't identify " + tokens[1]);
@@ -80,10 +80,10 @@ public class Interpreter {
                     resultValue += parseSelect(result);
                     break;
                 case "insert":
-                    parseInsert(result);
+                    resultValue += parseInsert(result);
                     break;
                 case "delete":
-                    parseDelete(result);
+                    resultValue += parseDelete(result);
                     break;
                 case "execfile":
                     parseSqlFile(result);
@@ -221,12 +221,13 @@ public class Interpreter {
         } else throw new QException(0, 323, "Can not find valid key word after 'show'!");
     }
 
-    private static void parseCreateTable(String statement) throws Exception {
+    private static String parseCreateTable(String statement) throws Exception {
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.replaceAll(" *, *", ",");
         statement = statement.trim();
         statement = statement.replaceAll("^create table", "").trim(); //skip create table keyword
 
+        StringBuilder result = new StringBuilder();
         int startIndex, endIndex;
         if (statement.equals("")) //no statement after create table
             throw new QException(0, 401, "Must specify a table name");
@@ -319,9 +320,11 @@ public class Interpreter {
         Table table = new Table(tableName, primaryName, attrVec); // create table
         API.createTable(tableName, table);
         System.out.println("-->Create table " + tableName + " successfully");
+        result.append("-->Create table " + tableName + " successfully!");
+        return result.toString();
     }
 
-    private static void parseDropTable(String statement) throws Exception {
+    private static String parseDropTable(String statement) throws Exception {
         String[] tokens = statement.split(" ");
         if (tokens.length == 2)
             throw new QException(0, 601, "Not specify table name");
@@ -331,9 +334,10 @@ public class Interpreter {
         String tableName = tokens[2]; //get table name
         API.dropTable(tableName);
         System.out.println("-->Drop table " + tableName + " successfully");
+        return "-->Drop table " + tableName + " successfully!";
     }
 
-    private static void parseCreateIndex(String statement) throws Exception {
+    private static String parseCreateIndex(String statement) throws Exception {
         statement = statement.replaceAll("\\s+", " ");
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.trim();
@@ -365,9 +369,10 @@ public class Interpreter {
         Index index = new Index(indexName, tableName, attrName);
         API.createIndex(index);
         System.out.println("-->Create index " + indexName + " successfully");
+        return "-->Create index " + indexName + " successfully!";
     }
 
-    private static void parseDropIndex(String statement) throws Exception {
+    private static String  parseDropIndex(String statement) throws Exception {
         String[] tokens = statement.split(" ");
         if (tokens.length == 2)
             throw new QException(0, 801, "Not specify index name");
@@ -377,6 +382,7 @@ public class Interpreter {
         String indexName = tokens[2]; //get table name
         API.dropIndex(indexName);
         System.out.println("-->Drop index " + indexName + " successfully");
+        return "-->Drop index " + indexName + " successfully!";
     }
 
     private static String parseSelect(String statement) throws Exception {
@@ -428,20 +434,21 @@ public class Interpreter {
         }
         double usedTime = (endTime - startTime) / 1000.0;
         System.out.println("Finished in " + usedTime + " s");
-        result += "Finished in " + usedTime + " s";
+        result += "\nFinished in " + usedTime + " s";
         return result;
     }
 
-    private static void parseInsert(String statement) throws Exception {
+    private static String parseInsert(String statement) throws Exception {
         statement = statement.replaceAll(" *\\( *", " (").replaceAll(" *\\) *", ") ");
         statement = statement.replaceAll(" *, *", ",");
         statement = statement.trim();
         statement = statement.replaceAll("^insert", "").trim();  //skip insert keyword
 
+        StringBuilder result = new StringBuilder();
         int startIndex, endIndex;
-        if (statement.equals(""))
-            throw new QException(0, 901, "Must add keyword 'into' after insert ");
-
+        if (statement.equals("")) {
+            result.append("Must add keyword 'into' after insert.");
+        }
         endIndex = statement.indexOf(" "); //check into keyword
         if (endIndex == -1)
             throw new QException(0, 902, "Not specify the table name");
@@ -503,12 +510,15 @@ public class Interpreter {
         }
 
         API.insertRow(tableName, tableRow);
-        System.out.println("-->Insert successfully");
+        System.out.println("");
+        result.append("-->Insert successfully");
+        return result.toString();
     }
 
-    private static void parseDelete(String statement) throws Exception {
+    private static String parseDelete(String statement) throws Exception {
         //delete from [tabName] where []
         int num;
+        StringBuilder result = new StringBuilder();
         String tabStr = Utils.substring(statement, "from ", " where").trim();
         String conStr = Utils.substring(statement, "where ", "").trim();
         Vector<Condition> conditions;
@@ -517,13 +527,16 @@ public class Interpreter {
             tabStr = Utils.substring(statement, "from ", "").trim();
             num = API.deleteRow(tabStr, new Vector<>());
             System.out.println("Query ok! " + num + " row(s) are deleted");
+            result.append("Query ok! " + num + " row(s) are deleted.");
         } else {  //delete from ... where ...
             String[] conSet = conStr.split(" *and *");
             //get condition vector
             conditions = Utils.createConditon(conSet);
             num = API.deleteRow(tabStr, conditions);
             System.out.println("Query ok! " + num + " row(s) are deleted");
+            result.append("Query ok! " + num + " row(s) are deleted.");
         }
+        return result.toString();
     }
 
     private static void parseQuit(String statement, BufferedReader reader) throws Exception {
