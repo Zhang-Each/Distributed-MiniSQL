@@ -1,6 +1,7 @@
 package RegionManagers.SocketManager;
 
 
+import miniSQL.API;
 import miniSQL.Interpreter;
 
 import java.io.BufferedReader;
@@ -50,7 +51,7 @@ public class ClientThread implements Runnable  {
                     }
                 }
             }
-        } catch (InterruptedException | IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -67,7 +68,7 @@ public class ClientThread implements Runnable  {
     //
     //
     //
-    public String commandProcess(String sql) throws IOException {
+    public String commandProcess(String sql) throws Exception {
         System.out.println("要处理的命令：" + sql);
         String result = Interpreter.interpret(sql);
         this.sendToClient(result);
@@ -75,11 +76,14 @@ public class ClientThread implements Runnable  {
         String createPattern = "-->Create table .* successfully";
         String dropPattern = "-->Drop table .* successfully";
         if(res[0].equals("-->Create")) {
+            API.store();
+            API.initial();
             return "<region>[2]" + res[2] + " add";
         }
         else if(res[0].equals("-->Drop")) {
-            return "<region>[2]" +
-                    "" + res[2] + " delete";
+            API.store();
+            API.initial();
+            return "<region>[2]" + res[2] + " delete";
         }
         else return "No modified";
     }

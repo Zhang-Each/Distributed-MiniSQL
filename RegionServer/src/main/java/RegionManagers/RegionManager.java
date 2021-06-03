@@ -2,6 +2,7 @@ package RegionManagers;
 
 import RegionManagers.SocketManager.ClientSocketManager;
 import RegionManagers.SocketManager.MasterSocketManager;
+import miniSQL.API;
 import miniSQL.Interpreter;
 
 import java.io.IOException;
@@ -29,8 +30,10 @@ public class RegionManager {
 //        masterThread.start();
     }
 
-    public void run() {
+    public void run() throws Exception {
         // 线程1：在应用启动的时候自动将本机的Host信息注册到ZooKeeper，然后阻塞，直到应用退出的时候也同时退出
+
+        API.initial();
         Thread zkServiceThread = new Thread(zkServiceManager);
         zkServiceThread.start();
         Thread MasterSocketThread = new Thread(masterSocketManager);
