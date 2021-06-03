@@ -5,8 +5,8 @@ import MasterManagers.TableManger;
 import java.net.Socket;
 
 /**
- * 1.等待客户端的表格查询信息<client>[1]name,返回<master>[1]ip
- * 2.等待客户端的表格创建信息<client>[2]name,做负载均衡处理后返回<master>[2]ip
+ * 1.等待客户端的表格查询信息<client>[1]name,返回<master>[1]ip name
+ * 2.等待客户端的表格创建信息<client>[2]name,做负载均衡处理后返回<master>[2]ip name
  */
 public class ClientProcessor {
 
@@ -21,7 +21,8 @@ public class ClientProcessor {
         String result = "";
         String ipAddress = socket.getInetAddress().toString();
         if (cmd.startsWith("[1]")) {
-            result = "[1]"+tableManger.get(cmd.substring(3));
+            String tablename = cmd.substring(3);
+            result = "[1]"+tableManger.get(tablename) + tablename;
         } else if (cmd.startsWith("[2]")) {
             result = "[1]"+tableManger.getServerList();
         }
