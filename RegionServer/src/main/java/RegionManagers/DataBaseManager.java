@@ -26,11 +26,11 @@ public class DataBaseManager {
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, Table> stringTableEntry : tables.entrySet()) {
             //System.out.println(((Map.Entry) stringTableEntry).getKey());
-            result.append(((Map.Entry) stringTableEntry).getKey() + " ");
+            result.append(((Map.Entry) stringTableEntry).getKey()).append(" ");
         }
         for (Map.Entry<String, Index> indexEntry : indices.entrySet()) {
             System.out.println(((Map.Entry) indexEntry).getKey());
-            result.append(((Map.Entry) indexEntry).getKey() + " ");
+            result.append(((Map.Entry) indexEntry).getKey()).append(" ");
         }
         return result.toString();
     }

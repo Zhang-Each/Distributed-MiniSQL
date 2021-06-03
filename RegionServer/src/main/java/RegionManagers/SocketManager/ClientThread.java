@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.regex.*;
 
 /**
  * 客户端socket线程，负责和客户端进行通信
@@ -16,16 +17,17 @@ import java.net.Socket;
 public class ClientThread implements Runnable  {
 
     private Socket socket;
-
+    private MasterSocketManager masterSocketManager;
     private boolean isRunning = false;
 
 
     public BufferedReader input = null;
     public PrintWriter output = null;
 
-    public ClientThread(Socket socket)
+    public ClientThread(Socket socket, MasterSocketManager masterSocketManager)
             throws IOException {
         this.socket = socket;
+        this.masterSocketManager = masterSocketManager;
         this.isRunning = true;
         // 基于Socket建立输入输出流
         this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -42,17 +44,19 @@ public class ClientThread implements Runnable  {
                 Thread.sleep(Long.parseLong("1000"));
                 line = input.readLine();
                 if (line != null) {
-                    this.commandProcess(line);
+                    String result = this.commandProcess(line);
+                    if(!result.equals("No modified")) {
+                        masterSocketManager.sendToMaster(result);
+                    }
                 }
             }
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public void sendToClient(String info) {
-        output.println(info);
+        output.println("<result>" + info);
     }
 
     // 从服务器处理接收到的命令，和出服务器的交互就在这一方法下面继续扩展
@@ -63,10 +67,21 @@ public class ClientThread implements Runnable  {
     //
     //
     //
-    public void commandProcess(String sql) throws IOException {
+    public String commandProcess(String sql) throws IOException {
         System.out.println("要处理的命令：" + sql);
         String result = Interpreter.interpret(sql);
         System.out.println(result);
         this.sendToClient(result);
+        String createPattern = "-->Create table .* successfully";
+        String dropPattern = "-->Drop table .* successfully";
+        if(Pattern.matches(createPattern, result)) {
+            String tableName = result.substring(16, result.length() - 12);
+            return "<region>[2] " + tableName + " add";
+        }
+        else if(Pattern.matches(dropPattern, result)) {
+            String tableName = result.substring(14, result.length() - 12);
+            return "<region>[2] " + tableName + " delete";
+        }
+        else return "No modified";
     }
 }

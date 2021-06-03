@@ -23,8 +23,12 @@ public class MasterSocketManager implements Runnable {
         isRunning = true;
     }
 
-    public void sendToMaster(String cmd) {
-        output.println("<client>" + cmd);
+    public void sendToMaster(String modified_info) {
+        output.println(modified_info);
+    }
+
+    public void sendTableInfoToMaster(String table_info) {
+        output.println("<region>[1]" + table_info);
     }
 
     public void receiveFromMaster() throws IOException {
