@@ -70,17 +70,16 @@ public class ClientThread implements Runnable  {
     public String commandProcess(String sql) throws IOException {
         System.out.println("要处理的命令：" + sql);
         String result = Interpreter.interpret(sql);
-        System.out.println(result);
         this.sendToClient(result);
+        String[] res = result.split(" ");
         String createPattern = "-->Create table .* successfully";
         String dropPattern = "-->Drop table .* successfully";
-        if(Pattern.matches(createPattern, result)) {
-            String tableName = result.substring(16, result.length() - 12);
-            return "<region>[2] " + tableName + " add";
+        if(res[0].equals("-->Create")) {
+            return "<region>[2]" + res[2] + " add";
         }
-        else if(Pattern.matches(dropPattern, result)) {
-            String tableName = result.substring(14, result.length() - 12);
-            return "<region>[2] " + tableName + " delete";
+        else if(res[0].equals("-->Drop")) {
+            return "<region>[2]" +
+                    "" + res[2] + " delete";
         }
         else return "No modified";
     }

@@ -21,11 +21,11 @@ public class RegionProcessor {
 
     public String processRegionCommand(String cmd) {
         String result = "";
-        String ipAddress = socket.getInetAddress().toString();
+        String ipAddress = socket.getInetAddress().getHostAddress();
         if (cmd.startsWith("[1]")) {
             String[] allTable = cmd.substring(3).split(" ");
-            for(String temp : allTable){
-                tableManger.addTable(temp,ipAddress);
+            for(String temp : allTable) {
+                tableManger.addTable(temp, ipAddress);
             }
         } else if (cmd.startsWith("[2]")) {
             String[] line = cmd.substring(3).split(" ");

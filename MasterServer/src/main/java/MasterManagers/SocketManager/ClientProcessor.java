@@ -19,12 +19,11 @@ public class ClientProcessor {
     }
     public String processClientCommand(String cmd) {
         String result = "";
-        String ipAddress = socket.getInetAddress().toString();
+        String tablename = cmd.substring(3);
         if (cmd.startsWith("[1]")) {
-            String tablename = cmd.substring(3);
-            result = "[1]"+tableManger.get(tablename) + tablename;
+            result = "[1]"+tableManger.get(tablename) +" "+ tablename;
         } else if (cmd.startsWith("[2]")) {
-            result = "[1]"+tableManger.getServerList();
+            result = "[2]"+tableManger.getBestServer() + " " +tablename;
         }
         return result;
     }

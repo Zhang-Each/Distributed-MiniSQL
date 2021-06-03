@@ -44,6 +44,10 @@ public class MasterSocketManager {
         output.println("<client>[1]" + info);
     }
 
+    public void sendToMasterCreate(String info) {
+        output.println("<client>[2]" + info);
+    }
+
     // 接收来自master server的信息并显示
     // 新增代码，查询主服务器中存储的表名和对应的端口号
     // 主服务器返回的内容的格式应该是"<table>table port"，因此args[0]和[1]分别代表了表名和对应的端口号
@@ -76,6 +80,7 @@ public class MasterSocketManager {
                 String[] args = line.substring(11).split(" ");
                 String ip = args[0], table = args[1];
                 this.clientManager.cacheManager.setCache(table, ip);
+                this.clientManager.connectToRegion(ip, commandMap.get(table));
             }
         }
 
@@ -96,7 +101,14 @@ public class MasterSocketManager {
         this.commandMap.put(table, sql);
         // 用<table>前缀表示要查某个表名对应的端口号
         System.out.println("存入table的是" + table + " " + sql);
-        this.sendToMaster("<table>" + table);
+        this.sendToMaster(table);
+    }
+
+    public void processCreate(String sql, String table) {
+        this.commandMap.put(table, sql);
+        // 用<table>前缀表示要查某个表名对应的端口号
+        System.out.println("存入table的是" + table + " " + sql);
+        this.sendToMasterCreate(table);
     }
 
     // 关闭socket的方法，在输入quit的时候直接调用

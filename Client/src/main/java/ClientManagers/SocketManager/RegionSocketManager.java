@@ -34,6 +34,7 @@ public class RegionSocketManager {
     }
 
     public void connectRegionServer(String ip) throws IOException {
+        System.out.println("connectRegionServer : "+ip);
         socket = new Socket(ip, 22222);
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new PrintWriter(socket.getOutputStream(), true);

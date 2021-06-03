@@ -24,7 +24,7 @@ public class TableManger {
         return tableInfo.get(table);
     }
 
-    public String getServerList(){
+    public String getBestServer(){
         Map<String,Integer> serverInfo = new HashMap<>();
         String result = "";
         for(String value : tableInfo.values()){

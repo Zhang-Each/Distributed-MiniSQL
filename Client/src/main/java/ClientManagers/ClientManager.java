@@ -64,26 +64,31 @@ public class ClientManager {
             }
 
             String table = target.get("name");
-            table = table.substring(0, table.length() - 1);
             String cache = null;
             System.out.println("新消息>>>需要处理的表名是：" + table);
-            if (target.get("cache").equals("true")) {
-                cache = cacheManager.getCache(table);
-                if (cache == null) {
-                    System.out.println("新消息>>>客户端缓存中不存在该表！");
-                } else {
-                    System.out.println("新消息>>>客户端缓存中存在该表！其对应的服务器是：" + cache);
+
+            if (target.get("kind").equals("create")) {
+                this.masterSocketManager.processCreate(sql.toString(), table);
+            } else {
+                if (target.get("cache").equals("true")) {
+                    cache = cacheManager.getCache(table);
+                    if (cache == null) {
+                        System.out.println("新消息>>>客户端缓存中不存在该表！");
+                    } else {
+                        System.out.println("新消息>>>客户端缓存中存在该表！其对应的服务器是：" + cache);
+                    }
                 }
+
+                // 如果cache里面没有找到表所对应的端口号，那么就去masterSocket里面查询
+                if (cache == null) {
+                    this.masterSocketManager.process(sql.toString(), table);
+                } else {
+                    // 如果查到了端口号就直接在RegionSocketManager中进行连接
+                    this.connectToRegion(cache, sql.toString());
+                }
+                sql = new StringBuilder();
             }
 
-            // 如果cache里面没有找到表所对应的端口号，那么就去masterSocket里面查询
-            if (cache == null) {
-                this.masterSocketManager.process(sql.toString(), table);
-            } else {
-                // 如果查到了端口号就直接在RegionSocketManager中进行连接
-                this.connectToRegion(cache, sql.toString());
-            }
-            sql = new StringBuilder();
         }
     }
 
@@ -108,10 +113,13 @@ public class ClientManager {
         // 空格替换
         sql = sql.replaceAll("\\s+", " " );
         String[] words = sql.split(" ");
+        // SQL语句的种类
+        result.put("kind", words[0]);
         if (words[0].equals("create")) {
             // 对应create table xxx和create index xxx
             // 此时创建新表，不需要cache
             result.put("cache", "false");
+            result.put("name", words[2]);
         } else if (words[0].equals("drop") || words[0].equals("insert") || words[0].equals("delete")) {
             // 这三种都是将table和index放在第三个位置的，可以直接取出
             String name = words[2].replace("(", "")

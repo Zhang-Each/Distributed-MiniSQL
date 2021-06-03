@@ -1,6 +1,7 @@
 package MasterManagers.SocketManager;
 
 import MasterManagers.TableManger;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.net.Socket;
 /**
  * 客户端socket线程，负责和客户端进行通信
  */
-
+@Slf4j
 public class SocketThread implements Runnable  {
 
     private boolean isRunning = false;
@@ -49,11 +50,11 @@ public class SocketThread implements Runnable  {
     }
 
     public void sendToClient(String info) {
-        output.println(info);
+        output.println("<master>"+info);
     }
 
     public void commandProcess(String cmd) {
-        System.out.println("要处理的命令：" + cmd);
+        log.warn(cmd);
         String result = "";
         if (cmd.startsWith("<client>")) {
             // 去掉前缀之后开始处理
