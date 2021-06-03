@@ -25,7 +25,7 @@ public class Interpreter {
             API.initial();
             System.out.println("Welcome to minisql~");
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            String res = interpret("select * from stu2;");
+            String res = interpret("select * from stu2;;");
             System.out.println("收到的结果：\n" + res);
 
         } catch (IOException e) {

@@ -65,7 +65,7 @@ public class ClientManager {
 
             String table = target.get("name");
             table = table.substring(0, table.length() - 1);
-            Integer cache = null;
+            String cache = null;
             System.out.println("新消息>>>需要处理的表名是：" + table);
             if (target.get("cache").equals("true")) {
                 cache = cacheManager.getCache(table);
@@ -90,6 +90,13 @@ public class ClientManager {
     // 和从节点建立连接并发送SQL语句过去收到执行结果
     public void connectToRegion(int PORT, String sql) throws IOException, InterruptedException {
         this.regionSocketManager.connectRegionServer(PORT);
+        Thread.sleep(100);
+        this.regionSocketManager.sendToRegion(sql);
+    }
+
+    // 重载方法，使用ip地址进行连接，端口号固定为22222
+    public void connectToRegion(String ip, String sql) throws IOException, InterruptedException {
+        this.regionSocketManager.connectRegionServer(ip);
         Thread.sleep(100);
         this.regionSocketManager.sendToRegion(sql);
     }

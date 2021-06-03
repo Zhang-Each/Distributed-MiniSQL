@@ -13,10 +13,14 @@ public class RegionSocketManager {
     private boolean isRunning = false;
     private Thread infoListener;
 
-    private final String region = "localhost";
+    private String region = "localhost";
 
     public RegionSocketManager() {
 
+    }
+
+    public void setRegionIP(String ip) {
+        this.region = ip;
     }
 
     // 与Region建立连接
@@ -27,6 +31,15 @@ public class RegionSocketManager {
         isRunning = true;
         this.listenToRegion();
         System.out.println("新消息>>>与从节点" + PORT + "建立Socket连接");
+    }
+
+    public void connectRegionServer(String ip) throws IOException {
+        socket = new Socket(ip, 22222);
+        input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        output = new PrintWriter(socket.getOutputStream(), true);
+        isRunning = true;
+        this.listenToRegion();
+        System.out.println("新消息>>>与从节点" + ip + "建立Socket连接");
     }
 
 

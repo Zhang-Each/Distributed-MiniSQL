@@ -41,7 +41,7 @@ public class MasterSocketManager {
     // 像主服务器发送信息的api
     // 要加上client标签，可以被主服务器识别
     public void sendToMaster(String info) {
-        output.println("<client>" + info);
+        output.println("<client>[1]" + info);
     }
 
     // 接收来自master server的信息并显示
@@ -56,6 +56,7 @@ public class MasterSocketManager {
         }
         if (line != null) {
             System.out.println("新消息>>>从服务器收到的信息是：" + line);
+            // 已经废弃的方案
             if (line.startsWith("<table>")) {
                 String[] args = line.substring(7).split(" ");
                 String sql = commandMap.get(args[0]);
@@ -65,9 +66,16 @@ public class MasterSocketManager {
                     int PORT = Integer.parseInt(args[1]);
                     commandMap.remove(args[0]);
                     // 查询到之后在client的cache中设置一个缓存
-                    this.clientManager.cacheManager.setCache(args[0], PORT);
+                    this.clientManager.cacheManager.setCache(args[0], String.valueOf(PORT));
                     this.clientManager.connectToRegion(PORT, sql);
                 }
+            }
+            // 主节点通信协议的解析方案
+            else if (line.startsWith("<master>[1]") || line.startsWith("<master>[2]")) {
+                // 截取ip地址
+                String[] args = line.substring(11).split(" ");
+                String ip = args[0], table = args[1];
+                this.clientManager.cacheManager.setCache(table, ip);
             }
         }
 

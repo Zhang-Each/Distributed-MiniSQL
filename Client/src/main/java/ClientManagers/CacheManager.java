@@ -8,7 +8,7 @@ import java.util.Map;
  */
 public class CacheManager {
     //客户端缓存表
-    private Map<String, Integer> cache;
+    private Map<String, String> cache;
 
     public CacheManager() {
         this.cache = new HashMap<>();
@@ -19,7 +19,7 @@ public class CacheManager {
      * @param table 要查询的表名
      * @return
      */
-    public Integer getCache(String table) {
+    public String getCache(String table) {
         if (this.cache.containsKey(table)) {
             return this.cache.get(table);
         }
@@ -31,7 +31,7 @@ public class CacheManager {
      * @param table 数据表的名称
      * @param server 服务器的IP地址和端口号
      */
-    public void setCache(String table, Integer server) {
+    public void setCache(String table, String server) {
         cache.put(table, server);
         System.out.println("存入缓存：表名" + table + " 端口号：" + table);
     }
