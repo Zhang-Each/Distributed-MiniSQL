@@ -526,15 +526,15 @@ public class Interpreter {
         if (tabStr.equals("")) {  //delete from ...
             tabStr = Utils.substring(statement, "from ", "").trim();
             num = API.deleteRow(tabStr, new Vector<>());
-            System.out.println("Query ok! " + num + " row(s) are deleted");
-            result.append("Query ok! " + num + " row(s) are deleted.");
+            System.out.println("-->Delete " + num + " row(s).");
+            result.append("-->Delete " + num + " row(s).");
         } else {  //delete from ... where ...
             String[] conSet = conStr.split(" *and *");
             //get condition vector
             conditions = Utils.createConditon(conSet);
             num = API.deleteRow(tabStr, conditions);
-            System.out.println("Query ok! " + num + " row(s) are deleted");
-            result.append("Query ok! " + num + " row(s) are deleted.");
+            System.out.println("-->Delete " + num + " row(s).");
+            result.append("-->Delete " + num + " row(s).");
         }
         return result.toString();
     }

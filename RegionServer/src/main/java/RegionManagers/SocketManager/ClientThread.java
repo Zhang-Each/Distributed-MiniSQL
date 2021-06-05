@@ -3,13 +3,13 @@ package RegionManagers.SocketManager;
 
 import miniSQL.API;
 import miniSQL.Interpreter;
+import RegionManagers.SocketManager.FtpUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.regex.*;
 
 /**
  * 客户端socket线程，负责和客户端进行通信
@@ -20,7 +20,7 @@ public class ClientThread implements Runnable  {
     private Socket socket;
     private MasterSocketManager masterSocketManager;
     private boolean isRunning = false;
-
+    private FtpUtils ftpUtils;
 
     public BufferedReader input = null;
     public PrintWriter output = null;
@@ -61,30 +61,43 @@ public class ClientThread implements Runnable  {
     }
 
     // 从服务器处理接收到的命令，和出服务器的交互就在这一方法下面继续扩展
-    //
-    //
-    //
-    //
-    //
-    //
-    //
+
     public String commandProcess(String sql) throws Exception {
         System.out.println("要处理的命令：" + sql);
         String result = Interpreter.interpret(sql);
         this.sendToClient(result);
+        String[] parts = sql.split(" ");
         String[] res = result.split(" ");
-        String createPattern = "-->Create table .* successfully";
-        String dropPattern = "-->Drop table .* successfully";
         if(res[0].equals("-->Create")) {
             API.store();
             API.initial();
+            sendToFTP(res[2]);
             return "<region>[2]" + res[2] + " add";
         }
         else if(res[0].equals("-->Drop")) {
             API.store();
             API.initial();
+            deleteFromFTP(res[2]);
             return "<region>[2]" + res[2] + " delete";
         }
+        else if(res[0].equals("-->Insert")) {
+            sendToFTP(parts[2]);
+            return "No modified";
+        }
+        else if(res[0].equals("-->Delete")) {
+            sendToFTP(parts[2]);
+            return "No modified";
+        }
         else return "No modified";
+    }
+
+    public void sendToFTP(String fileName) {
+        ftpUtils.uploadFile(fileName, "table");
+        ftpUtils.uploadFile(fileName + "_index.index", "index");
+    }
+
+    public void deleteFromFTP(String fileName) {
+        ftpUtils.deleteFile(fileName, "table");
+        ftpUtils.deleteFile(fileName + "_index.index", "index");
     }
 }
