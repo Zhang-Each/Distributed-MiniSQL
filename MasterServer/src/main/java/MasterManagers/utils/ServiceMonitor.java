@@ -7,8 +7,6 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.*;
 
-import java.util.Arrays;
-
 /**
  * ZooKeeper的节点监视器，将发生的事件进行处理，
  */
@@ -20,9 +18,9 @@ public class ServiceMonitor implements PathChildrenCacheListener {
     private TableManger tableManger;
 
     public ServiceMonitor(CuratorHolder curatorClientHolder, TableManger tableManger) {
-        this.strategyExecutor = new ServiceStrategyExecutor();
-        this.client = curatorClientHolder;
         this.tableManger = tableManger;
+        this.strategyExecutor = new ServiceStrategyExecutor(tableManger);
+        this.client = curatorClientHolder;
     }
 
     @Override
@@ -62,21 +60,16 @@ public class ServiceMonitor implements PathChildrenCacheListener {
      */
     public void eventServerAppear(String hostName, String hostUrl) {
         log.warn("新增服务器节点：主机名 {}, 地址 {}", hostName, hostUrl);
-        tableManger.addServer(hostUrl);
-        System.out.println(tableManger.getNumOfServer());
-
-//        if (ServiceStrategyExecutor.DataHolder.dataServers.get(hostName) != null) {
-//            // 该服务器已经存在，即从失效状态中恢复
-//            thisServer = ServiceStrategyExecutor.DataHolder.dataServers.get(hostName);
-//            log.warn("对该服务器{}执行恢复策略", hostName);
-//            strategyExecutor.execStrategy(thisServer, StrategyTypeEnum.RECOVER);
-//        } else {
-//            // 新发现的服务器，新增一份数据
-//            ServiceStrategyExecutor.DataHolder.addServer(hostName, hostUrl);
-//            thisServer = ServiceStrategyExecutor.DataHolder.dataServers.get(hostName);
-//            log.warn("对该服务器{}执行新增策略", hostName);
-//            strategyExecutor.execStrategy(thisServer, StrategyTypeEnum.DISCOVER);
-//        }
+        if (strategyExecutor.existServer(hostUrl)) {
+            // 该服务器已经存在，即从失效状态中恢复
+            log.warn("对该服务器{}执行恢复策略", hostUrl);
+            strategyExecutor.execStrategy(hostUrl, StrategyTypeEnum.RECOVER);
+        } else {
+            // 新发现的服务器，新增一份数据
+            strategyExecutor.addServer(hostUrl);
+            log.warn("对该服务器{}执行新增策略", hostName);
+            strategyExecutor.execStrategy(hostUrl, StrategyTypeEnum.DISCOVER);
+        }
     }
 
     /**
@@ -94,7 +87,7 @@ public class ServiceMonitor implements PathChildrenCacheListener {
 //            // 更新并处理下线的服务器
 //            thisServer = ServiceStrategyExecutor.DataHolder.dataServers.get(hostName);
 //            log.warn("对该服务器{}执行失效策略", hostName);
-//            strategyExecutor.execStrategy(thisServer, StrategyTypeEnum.INVALID);
+//            strategyExecutor.execStrategy(thisServer, StrategyType.INVALID);
 //        }
     }
 

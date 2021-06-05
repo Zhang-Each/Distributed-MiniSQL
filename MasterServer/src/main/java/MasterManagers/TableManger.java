@@ -5,10 +5,10 @@ import java.util.*;
 public class TableManger {
     // 一个用于记录各种信息的表
     private Map<String, String> tableInfo;
-    private Set<String> serverList;
+    private List<String> serverList;
 
     public TableManger() {
-        serverList = new HashSet<>();
+        serverList = new ArrayList<>();
         tableInfo = new HashMap<>();
     }
 
@@ -52,13 +52,22 @@ public class TableManger {
     }
 
     public void addServer(String hostUrl) {
-        serverList.add(hostUrl);
+        if(!existServer(hostUrl))
+            serverList.add(hostUrl);
     }
 
     public void deleteServer(String hostUrl) {
-        serverList.remove(hostUrl);
+        serverList.removeIf(hostUrl::equals);
     }
     public int getNumOfServer(){
         return serverList.size();
+    }
+
+    public boolean existServer(String hostUrl) {
+        for(String s : serverList){
+            if(s.equals(hostUrl))
+                return true;
+        }
+        return false;
     }
 }

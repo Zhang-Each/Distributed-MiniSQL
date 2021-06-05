@@ -18,6 +18,7 @@ public class ZookeeperManager implements Runnable{
     private TableManger tableManger;
     //ZooKeeper集群访问的端口
     public static final String ZK_HOST = "localhost:2181";
+//    public static final String ZK_HOST = "172.20.10.10:2181";
     //ZooKeeper会话超时时间
     public static final Integer ZK_SESSION_TIMEOUT = 3000;
     //ZooKeeper连接超时时间
