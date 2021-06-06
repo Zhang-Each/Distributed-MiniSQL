@@ -49,7 +49,7 @@ public class SocketThread implements Runnable  {
 
     }
 
-    public void sendToClient(String info) {
+    public void sendToRegion(String info) {
         output.println("<master>"+info);
     }
 
@@ -63,6 +63,6 @@ public class SocketThread implements Runnable  {
             result = regionProcessor.processRegionCommand(cmd.substring(8));
         }
         if(!result.equals(""))
-            this.sendToClient(result);
+            this.sendToRegion(result);
     }
 }

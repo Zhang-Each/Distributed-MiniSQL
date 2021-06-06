@@ -21,7 +21,7 @@ public class ClientProcessor {
         String result = "";
         String tablename = cmd.substring(3);
         if (cmd.startsWith("[1]")) {
-            result = "[1]"+tableManger.get(tablename) +" "+ tablename;
+            result = "[1]"+tableManger.getInetAddress(tablename) +" "+ tablename;
         } else if (cmd.startsWith("[2]")) {
             result = "[2]"+tableManger.getBestServer() + " " +tablename;
         }

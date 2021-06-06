@@ -13,7 +13,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 public class FtpUtils {
     // 此处设置为FTP的IP地址
-    public String hostname = "10.181.245.175";
+    public String hostname = "localhost";
     public int port = 21;
     public String username = "test";
     public String password = "test";

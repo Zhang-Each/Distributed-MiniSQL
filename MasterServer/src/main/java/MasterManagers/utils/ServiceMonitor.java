@@ -66,7 +66,6 @@ public class ServiceMonitor implements PathChildrenCacheListener {
             strategyExecutor.execStrategy(hostUrl, StrategyTypeEnum.RECOVER);
         } else {
             // 新发现的服务器，新增一份数据
-            strategyExecutor.addServer(hostUrl);
             log.warn("对该服务器{}执行新增策略", hostName);
             strategyExecutor.execStrategy(hostUrl, StrategyTypeEnum.DISCOVER);
         }
@@ -77,18 +76,14 @@ public class ServiceMonitor implements PathChildrenCacheListener {
      *  @param hostName
      * @param hostUrl*/
     public void eventServerDisappear(String hostName, String hostUrl) {
-        log.warn("删除服务器节点：主机名 {}, 地址 {}", hostName, hostUrl);
-        tableManger.deleteServer(hostUrl);
-        System.out.println(tableManger.getNumOfServer());
-//        DataServer thisServer;
-//        if (ServiceStrategyExecutor.DataHolder.dataServers.get(hostName) == null) {
-//            throw new RuntimeException("需要删除信息的服务器不存在于服务器列表中");
-//        } else {
-//            // 更新并处理下线的服务器
-//            thisServer = ServiceStrategyExecutor.DataHolder.dataServers.get(hostName);
-//            log.warn("对该服务器{}执行失效策略", hostName);
-//            strategyExecutor.execStrategy(thisServer, StrategyType.INVALID);
-//        }
+        log.warn("服务器节点失效：主机名 {}, 地址 {}", hostName, hostUrl);
+        if (!strategyExecutor.existServer(hostUrl)) {
+            throw new RuntimeException("需要删除信息的服务器不存在于服务器列表中");
+        } else {
+            // 更新并处理下线的服务器
+            log.warn("对该服务器{}执行失效策略", hostName);
+            strategyExecutor.execStrategy(hostUrl, StrategyTypeEnum.INVALID);
+        }
     }
 
     /**

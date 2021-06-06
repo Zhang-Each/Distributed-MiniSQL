@@ -1,6 +1,7 @@
 package MasterManagers.SocketManager;
 
 import MasterManagers.TableManger;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.Socket;
 
@@ -9,6 +10,7 @@ import java.net.Socket;
  *    如果没有存储表，则不用发
  * 2. 等待从节点的表格更改消息[2]name delete/add
  */
+@Slf4j
 public class RegionProcessor {
 
     private TableManger tableManger;
@@ -22,7 +24,7 @@ public class RegionProcessor {
     public String processRegionCommand(String cmd) {
         String result = "";
         String ipAddress = socket.getInetAddress().getHostAddress();
-        if (cmd.startsWith("[1]")) {
+        if (cmd.startsWith("[1]") && !tableManger.existServer(ipAddress)) {
             String[] allTable = cmd.substring(3).split(" ");
             for(String temp : allTable) {
                 tableManger.addTable(temp, ipAddress);
@@ -30,12 +32,17 @@ public class RegionProcessor {
         } else if (cmd.startsWith("[2]")) {
             String[] line = cmd.substring(3).split(" ");
             if(line[1].equals("delete")){
-                tableManger.deleteTable(line[0]);
+                tableManger.deleteTable(line[0],ipAddress);
             }
             else if(line[1].equals("add")){
                 tableManger.addTable(line[0],ipAddress);
             }
+        }else if (cmd.startsWith("[3]")){
+            log.warn("完成从节点的数据转移");
+        }else if (cmd.startsWith("[4]")){
+            log.warn("完成从节点的恢复，重新上线");
         }
+
         return result;
     }
 

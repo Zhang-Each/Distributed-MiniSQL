@@ -1,7 +1,10 @@
 package MasterManagers.utils;
 
+import MasterManagers.SocketManager.SocketThread;
 import MasterManagers.TableManger;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * 1. 从节点每次创表、插入、删除，在完成操作后将所修改的表和索引传输到ftp。
@@ -46,12 +49,25 @@ public class ServiceStrategyExecutor {
     }
 
     private void execInvalidStrategy (String hostUrl) {
+        StringBuffer allTable = new StringBuffer();
+        List<String> tableList = tableManger.getTableList(hostUrl);
+        for(String s:tableList){
+            allTable.append(s);
+        }
+        String bestInet = tableManger.getBestServer(hostUrl);
+        tableManger.exchangeTable(bestInet,hostUrl);
+        SocketThread socketThread = tableManger.getSocketThread(bestInet);
+        socketThread.sendToRegion("[3]"+allTable);
     }
 
     private void execDiscoverStrategy(String hostUrl) {
+        addServer(hostUrl);
     }
 
     private void execRecoverStrategy(String hostUrl) {
+        tableManger.recoverServer(hostUrl);
+        SocketThread socketThread = tableManger.getSocketThread(hostUrl);
+        socketThread.sendToRegion("[4]recover");
     }
 
 

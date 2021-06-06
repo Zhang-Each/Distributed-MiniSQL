@@ -1,50 +1,67 @@
 package MasterManagers;
 
+import MasterManagers.SocketManager.SocketThread;
+
 import java.util.*;
 
+/**
+ * 需要一个用于记录所有连接过的ip的list
+ * 需要一个用于记录当前活跃的ip，以及每个ip对应的table list
+ */
 public class TableManger {
     // 一个用于记录各种信息的表
     private Map<String, String> tableInfo;
+    //一个用于记录所有连接过的从节点ip的list
     private List<String> serverList;
+    //一个用于记录当前活跃的从节点ip，以及每个从节点ip对应的table list
+    private Map<String,List<String>> aliveServer;
+    // ip地址与相对应的socket
+    private Map<String, SocketThread> socketThreadMap;
 
     public TableManger() {
         serverList = new ArrayList<>();
         tableInfo = new HashMap<>();
+        aliveServer = new HashMap<>();
+        socketThreadMap = new HashMap<>();
     }
 
     public void addTable(String table, String inetAddress) {
         tableInfo.put(table, inetAddress);
+        if(aliveServer.containsKey(inetAddress)){
+            aliveServer.get(inetAddress).add(table);
+        }
+        else{
+            List<String> temp = new ArrayList<>();
+            temp.add(table);
+            aliveServer.put(inetAddress,temp);
+        }
     }
 
-    public void deleteTable(String table) {
+    public void deleteTable(String table, String inetAddress) {
         tableInfo.remove(table);
+        aliveServer.get(inetAddress).removeIf(table::equals);
+
     }
 
-    public String get(String table){
+    public String getInetAddress(String table){
         return tableInfo.get(table);
     }
 
     public String getBestServer(){
-        Map<String,Integer> serverInfo = new HashMap<>();
+        Integer min = Integer.MAX_VALUE;
         String result = "";
-        for(String value : tableInfo.values()){
-            serverInfo.compute(value, (k, v) -> {
-                if (v == null) {
-                    return 1;
-                }
-                return ++v;
-            });
-        }
-        if(serverList.size()>serverInfo.size()){
-            for(String temp: serverList){
-                if(!serverInfo.containsKey(temp)){
-                    return temp;
-                }
+        for(Map.Entry<String, List<String>> entry : aliveServer.entrySet()){
+            if(entry.getValue().size()<min){
+                result = entry.getKey();
             }
         }
+        return result;
+    }
+    public String getBestServer(String hostUrl){
         Integer min = Integer.MAX_VALUE;
-        for(Map.Entry<String, Integer> entry : serverInfo.entrySet()){
-            if(entry.getValue()<min){
+        String result = "";
+        for(Map.Entry<String, List<String>> entry : aliveServer.entrySet()){
+            if(!entry.getKey().equals(hostUrl) && entry.getValue().size()<min){
                 result = entry.getKey();
             }
         }
@@ -56,18 +73,41 @@ public class TableManger {
             serverList.add(hostUrl);
     }
 
-    public void deleteServer(String hostUrl) {
-        serverList.removeIf(hostUrl::equals);
-    }
-    public int getNumOfServer(){
-        return serverList.size();
-    }
-
     public boolean existServer(String hostUrl) {
         for(String s : serverList){
             if(s.equals(hostUrl))
                 return true;
         }
         return false;
+    }
+
+    public List<String> getTableList(String hostUrl) {
+        for(Map.Entry<String, List<String>> entry : aliveServer.entrySet()){
+            if(entry.getKey().equals(hostUrl)){
+                return  entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    public void addSocketThread(String hostUrl, SocketThread socketThread) {
+        socketThreadMap.put(hostUrl,socketThread);
+    }
+
+    public SocketThread getSocketThread(String hostUrl) {
+        return socketThreadMap.get(hostUrl);
+    }
+
+    public void exchangeTable(String bestInet, String hostUrl) {
+        List <String> tableList = getTableList(hostUrl);
+        List <String> bestInetTable = aliveServer.get(bestInet);
+        bestInetTable.addAll(tableList);
+        aliveServer.put(bestInet,bestInetTable);
+        aliveServer.remove(hostUrl);
+    }
+
+    public void recoverServer(String hostUrl) {
+        List<String> temp = new ArrayList<>();
+        aliveServer.put(hostUrl,temp);
     }
 }
