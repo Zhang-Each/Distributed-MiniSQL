@@ -31,9 +31,8 @@ public class ClientManager {
         System.out.println("Distributed-MiniSQL客户端启动！");
         Scanner input = new Scanner(System.in);
         String line = "";
-        StringBuilder sql = new StringBuilder();
-
         while (true) {
+            StringBuilder sql = new StringBuilder();
             // 读入一句完整的SQL语句
             System.out.println("新消息>>>请输入你想要执行的SQL语句：");
             // System.out.print("DisMiniSQL>>>");
@@ -58,7 +57,9 @@ public class ClientManager {
             }
 
             // 获得目标表名和索引名
-            Map<String, String> target = this.interpreter(sql.toString());
+            String command = sql.toString();
+            sql = new StringBuilder();
+            Map<String, String> target = this.interpreter(command);
             if (target.containsKey("error")) {
                 System.out.println("新消息>>>输入有误，请重试！");
             }
@@ -68,7 +69,7 @@ public class ClientManager {
             System.out.println("新消息>>>需要处理的表名是：" + table);
 
             if (target.get("kind").equals("create")) {
-                this.masterSocketManager.processCreate(sql.toString(), table);
+                this.masterSocketManager.processCreate(command, table);
             } else {
                 if (target.get("cache").equals("true")) {
                     cache = cacheManager.getCache(table);
@@ -81,14 +82,12 @@ public class ClientManager {
 
                 // 如果cache里面没有找到表所对应的端口号，那么就去masterSocket里面查询
                 if (cache == null) {
-                    this.masterSocketManager.process(sql.toString(), table);
+                    this.masterSocketManager.process(command, table);
                 } else {
                     // 如果查到了端口号就直接在RegionSocketManager中进行连接
-                    this.connectToRegion(cache, sql.toString());
+                    this.connectToRegion(cache, command);
                 }
-                sql = new StringBuilder();
             }
-
         }
     }
 
