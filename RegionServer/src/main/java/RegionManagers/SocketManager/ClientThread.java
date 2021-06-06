@@ -3,7 +3,6 @@ package RegionManagers.SocketManager;
 
 import miniSQL.API;
 import miniSQL.Interpreter;
-import RegionManagers.SocketManager.FtpUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,6 +29,7 @@ public class ClientThread implements Runnable  {
         this.socket = socket;
         this.masterSocketManager = masterSocketManager;
         this.isRunning = true;
+        this.ftpUtils = new FtpUtils();
         // 基于Socket建立输入输出流
         this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.output = new PrintWriter(socket.getOutputStream(), true);

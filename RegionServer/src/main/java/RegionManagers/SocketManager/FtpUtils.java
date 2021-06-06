@@ -13,7 +13,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 public class FtpUtils {
     // 此处设置为FTP的IP地址
-    public String hostname = "127.0.0.1";
+    public String hostname = "10.181.245.175";
     public int port = 21;
     public String username = "test";
     public String password = "test";
@@ -49,7 +49,7 @@ public class FtpUtils {
         }
     }
 
-    public Boolean downLoadFile(String ftpPath, String fileName, String savePath){
+    public Boolean downLoadFile(String ftpPath, String fileName, String savePath) {
         login();
         OutputStream os = null;
         if (ftpClient != null) {
@@ -67,7 +67,7 @@ public class FtpUtils {
                     return false;
                 }
                 for(FTPFile file : ftpFiles){
-                    if(fileName.equals("") || fileName.equalsIgnoreCase(file.getName())){
+                    if(fileName.equals("") || fileName.equalsIgnoreCase(file.getName())) {
                         if(!file.isDirectory()) {
                             File saveFile = new File(savePath + "/" + file.getName());
                             os = new FileOutputStream(saveFile);
@@ -93,21 +93,23 @@ public class FtpUtils {
         return false;
     }
 
-    public boolean uploadFile(String filePath, String fileName) {
+    public boolean uploadFile(String fileName, String savePath) {
         login();
         boolean flag = false;
         InputStream inputStream = null;
         if (ftpClient != null) {
             try{
-                inputStream = new FileInputStream(new File(filePath));
+                inputStream = new FileInputStream(new File(fileName));
                 ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
+                ftpClient.makeDirectory(savePath);
+                ftpClient.changeWorkingDirectory(savePath);
                 ftpClient.storeFile(fileName, inputStream);
                 inputStream.close();
                 flag = true;
-            }catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
-            }finally{
-                if(null != inputStream){
+            } finally {
+                if(null != inputStream) {
                     try {
                         inputStream.close();
                     } catch (IOException e) {
@@ -120,13 +122,13 @@ public class FtpUtils {
         return flag;
     }
 
-    public boolean deleteFile(String filePath, String filename) {
+    public boolean deleteFile(String fileName, String filePath) {
         login();
         boolean flag = false;
         if (ftpClient != null) {
             try {
                 ftpClient.changeWorkingDirectory(filePath);
-                ftpClient.dele(filename);
+                ftpClient.dele(fileName);
                 flag = true;
             } catch (Exception e) {
                 e.printStackTrace();
