@@ -72,7 +72,7 @@ public class ClientThread implements Runnable  {
             API.store();
             API.initial();
             sendToFTP(res[2]);
-            return "<region>[2]" + res[2] + " add";
+            return "<region>[2]" + res[2] + " add " + sql;
         }
         else if(res[0].equals("-->Drop")) {
             API.store();

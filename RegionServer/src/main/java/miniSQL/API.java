@@ -28,7 +28,7 @@ public class API {
 	    RecordManager.storeRecord();
     }
 
-    public static boolean createTable(String tabName, Table tab) throws Exception {
+    public static boolean  createTable(String tabName, Table tab) throws Exception {
         try {
             if (RecordManager.createTable(tabName) && CatalogManager.createTable(tab)) {
                 String indexName = tabName + "_index";  //refactor index name

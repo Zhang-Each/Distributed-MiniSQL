@@ -6,11 +6,18 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import lombok.SneakyThrows;
+import miniSQL.API;
+import miniSQL.Interpreter;
+import RegionManagers.DataBaseManager;
+
 // 负责和主节点进行通信的类
 public class MasterSocketManager implements Runnable {
     private Socket socket;
     private BufferedReader input = null;
     private PrintWriter output = null;
+    private FtpUtils ftpUtils;
+    private DataBaseManager dataBaseManager;
     private boolean isRunning = false;
 
     public final int SERVER_PORT = 12345;
@@ -18,6 +25,7 @@ public class MasterSocketManager implements Runnable {
 
     public MasterSocketManager() throws IOException {
         this.socket = new Socket(MASTER, SERVER_PORT);
+        this.ftpUtils = new FtpUtils();
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new PrintWriter(socket.getOutputStream(), true);
         isRunning = true;
@@ -39,7 +47,40 @@ public class MasterSocketManager implements Runnable {
             line = input.readLine();
         }
         if (line != null) {
-            System.out.println("新消息>>>主服务器收到的信息是：" + line);
+            if (line.startsWith("<master>[3]")) {
+                String tableName = line.substring(11);
+                String[] tableNames = tableName.split(" ");
+                for(int i = 0; i < tableNames.length; i += 2) {
+                    String table = tableNames[i];
+                    String sql = tableNames[i + 1];
+                    Interpreter.interpret(sql);
+                    try {
+                        API.store();
+                        API.initial();
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    ftpUtils.downLoadFile("table", table, "/");
+                    ftpUtils.downLoadFile("index", table + "_index.index", "/");
+                }
+                output.println("<region>[3]Complete disaster recovery");
+            }
+            else if (line.equals("<master>[4]recover")) {
+                String tableName = dataBaseManager.getMetaInfo();
+                String[] tableNames = tableName.split(" ");
+                for(String table: tableNames) {
+                    Interpreter.interpret("drop table " + table + " ;");
+                    try {
+                        API.store();
+                        API.initial();
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                output.println("<master>[4]Online");
+            }
         }
     }
 
@@ -64,5 +105,4 @@ public class MasterSocketManager implements Runnable {
             }
         }
     }
-
 }
