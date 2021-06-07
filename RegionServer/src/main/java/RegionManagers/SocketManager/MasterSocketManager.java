@@ -49,10 +49,11 @@ public class MasterSocketManager implements Runnable {
         if (line != null) {
             if (line.startsWith("<master>[3]")) {
                 String tableName = line.substring(11);
-                String[] tableNames = tableName.split(" ");
-                for(int i = 0; i < tableNames.length; i += 2) {
-                    String table = tableNames[i];
-                    String sql = tableNames[i + 1];
+                String[] tables = tableName.split(";");
+                for(String table : tables) {
+                    String[] values = table.split("@");
+                    String t = values[0];
+                    String sql = values[1] + ";";
                     Interpreter.interpret(sql);
                     try {
                         API.store();
@@ -61,8 +62,8 @@ public class MasterSocketManager implements Runnable {
                     catch (Exception e) {
                         e.printStackTrace();
                     }
-                    ftpUtils.downLoadFile("table", table, "/");
-                    ftpUtils.downLoadFile("index", table + "_index.index", "/");
+                    ftpUtils.downLoadFile("table", t, "/");
+                    ftpUtils.downLoadFile("index", t + "_index.index", "/");
                 }
                 output.println("<region>[3]Complete disaster recovery");
             }
