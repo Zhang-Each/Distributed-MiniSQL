@@ -51,8 +51,12 @@ public class ServiceStrategyExecutor {
     private void execInvalidStrategy (String hostUrl) {
         StringBuffer allTable = new StringBuffer();
         List<String> tableList = tableManger.getTableList(hostUrl);
+        //<master>[3]name@sql#name@sql#name@sql
         for(String s:tableList){
             allTable.append(s);
+            allTable.append("@");
+            allTable.append(tableManger.getSql(s));
+            allTable.append("#");
         }
         String bestInet = tableManger.getBestServer(hostUrl);
         tableManger.exchangeTable(bestInet,hostUrl);

@@ -35,7 +35,7 @@ public class RegionProcessor {
                 tableManger.deleteTable(line[0],ipAddress);
             }
             else if(line[1].equals("add")){
-                tableManger.addTable(line[0],ipAddress);
+                tableManger.addTable(line[0],ipAddress,line[2]);
             }
         }else if (cmd.startsWith("[3]")){
             log.warn("完成从节点的数据转移");
