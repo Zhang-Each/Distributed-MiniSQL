@@ -65,18 +65,15 @@ public class ClientThread implements Runnable  {
     public String commandProcess(String sql) throws Exception {
         System.out.println("要处理的命令：" + sql);
         String result = Interpreter.interpret(sql);
+        API.store();
         this.sendToClient(result);
         String[] parts = sql.split(" ");
         String[] res = result.split(" ");
         if(res[0].equals("-->Create")) {
-            API.store();
-            API.initial();
             sendToFTP(res[2]);
             return "<region>[2]" + res[2] + " add " + sql;
         }
         else if(res[0].equals("-->Drop")) {
-            API.store();
-            API.initial();
             deleteFromFTP(res[2]);
             return "<region>[2]" + res[2] + " delete";
         }

@@ -1,9 +1,6 @@
 package RegionManagers.SocketManager;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 import lombok.SneakyThrows;
@@ -39,6 +36,11 @@ public class MasterSocketManager implements Runnable {
         output.println("<region>[1]" + table_info);
     }
 
+    public void delFile(String fileName) {
+        File file = new File(fileName);
+        if (file.exists() && file.isFile()) file.delete();
+    }
+
     public void receiveFromMaster() throws IOException {
         String line = null;
         if (socket.isClosed() || socket.isInputShutdown() || socket.isOutputShutdown()) {
@@ -49,21 +51,29 @@ public class MasterSocketManager implements Runnable {
         if (line != null) {
             if (line.startsWith("<master>[3]")) {
                 String tableName = line.substring(11);
-                String[] tables = tableName.split(";");
+                String[] tables = tableName.split("#");
+                for(String s:tables){
+                    System.out.println(s);
+                }
                 for(String table : tables) {
                     String[] values = table.split("@");
                     String t = values[0];
-                    String sql = values[1] + ";";
+                    String sql = values[1];
+                    if(sql.equals("null")) continue;
                     Interpreter.interpret(sql);
+                    System.out.println(sql);
                     try {
                         API.store();
-                        API.initial();
                     }
                     catch (Exception e) {
                         e.printStackTrace();
                     }
-                    ftpUtils.downLoadFile("table", t, "/");
-                    ftpUtils.downLoadFile("index", t + "_index.index", "/");
+
+                    delFile(t);
+                    delFile(t + "_index.index");
+                    ftpUtils.downLoadFile("table", t, "");
+                    ftpUtils.downLoadFile("index", t + "_index.index", "");
+
                 }
                 output.println("<region>[3]Complete disaster recovery");
             }

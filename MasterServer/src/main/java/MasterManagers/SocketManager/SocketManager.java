@@ -1,6 +1,7 @@
 package MasterManagers.SocketManager;
 
 import MasterManagers.TableManger;
+import MasterManagers.utils.SocketUtils;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -37,8 +38,10 @@ public class SocketManager {
             Socket socket = serverSocket.accept();
             // 建立子线程并启动
             SocketThread socketThread = new SocketThread(socket,tableManger);
-            System.out.println(socket.getInetAddress().getHostAddress());
-            tableManger.addSocketThread(socket.getInetAddress().getHostAddress(),socketThread);
+            String ipAddress = socket.getInetAddress().getHostAddress();
+            if(ipAddress.equals("127.0.0.1"))
+                ipAddress = SocketUtils.getHostAddress();
+            tableManger.addSocketThread(ipAddress,socketThread);
             Thread thread = new Thread(socketThread);
             thread.start();
         }

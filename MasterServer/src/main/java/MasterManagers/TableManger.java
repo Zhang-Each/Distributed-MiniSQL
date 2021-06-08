@@ -27,7 +27,9 @@ public class TableManger {
         aliveServer = new HashMap<>();
         socketThreadMap = new HashMap<>();
         name2sql = new HashMap<>();
-        readFile("text.txt");
+        File file = new File("text.txt");
+        if (file.exists())
+            readFile("text.txt");
     }
 
     public void addTable(String table, String inetAddress, String sql) {
@@ -62,7 +64,12 @@ public class TableManger {
     }
 
     public String getInetAddress(String table){
-        return tableInfo.get(table);
+        for(Map.Entry<String, String> entry : tableInfo.entrySet()){
+            if(entry.getKey().equals(table)){
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     public String getBestServer(){
@@ -89,6 +96,8 @@ public class TableManger {
     public void addServer(String hostUrl) {
         if(!existServer(hostUrl))
             serverList.add(hostUrl);
+        List<String> temp = new ArrayList<>();
+        aliveServer.put(hostUrl,temp);
     }
 
     public boolean existServer(String hostUrl) {
@@ -113,11 +122,18 @@ public class TableManger {
     }
 
     public SocketThread getSocketThread(String hostUrl) {
-        return socketThreadMap.get(hostUrl);
+        for(Map.Entry<String, SocketThread> entry : socketThreadMap.entrySet()){
+            if(entry.getKey().equals(hostUrl))
+                return entry.getValue();
+        }
+        return null;
     }
 
     public void exchangeTable(String bestInet, String hostUrl) {
         List <String> tableList = getTableList(hostUrl);
+        for(String table : tableList){
+            tableInfo.put(table,bestInet);
+        }
         List <String> bestInetTable = aliveServer.get(bestInet);
         bestInetTable.addAll(tableList);
         aliveServer.put(bestInet,bestInetTable);

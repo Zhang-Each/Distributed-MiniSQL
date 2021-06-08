@@ -59,13 +59,14 @@ public class ServiceStrategyExecutor {
             allTable.append("#");
         }
         String bestInet = tableManger.getBestServer(hostUrl);
+        log.warn("bestInet:"+bestInet);
         tableManger.exchangeTable(bestInet,hostUrl);
         SocketThread socketThread = tableManger.getSocketThread(bestInet);
         socketThread.sendToRegion("[3]"+allTable);
     }
 
     private void execDiscoverStrategy(String hostUrl) {
-        addServer(hostUrl);
+
     }
 
     private void execRecoverStrategy(String hostUrl) {

@@ -1,6 +1,7 @@
 package MasterManagers.SocketManager;
 
 import MasterManagers.TableManger;
+import MasterManagers.utils.SocketUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.Socket;
@@ -24,18 +25,22 @@ public class RegionProcessor {
     public String processRegionCommand(String cmd) {
         String result = "";
         String ipAddress = socket.getInetAddress().getHostAddress();
+        if(ipAddress.equals("127.0.0.1"))
+            ipAddress = SocketUtils.getHostAddress();
         if (cmd.startsWith("[1]") && !tableManger.existServer(ipAddress)) {
+            tableManger.addServer(ipAddress);
             String[] allTable = cmd.substring(3).split(" ");
             for(String temp : allTable) {
                 tableManger.addTable(temp, ipAddress);
             }
         } else if (cmd.startsWith("[2]")) {
-            String[] line = cmd.substring(3).split(" ");
+            String[] sql = cmd.substring(3).split("#");
+            String[] line = sql[0].split(" ");
             if(line[1].equals("delete")){
                 tableManger.deleteTable(line[0],ipAddress);
             }
             else if(line[1].equals("add")){
-                tableManger.addTable(line[0],ipAddress,line[2]);
+                tableManger.addTable(line[0],ipAddress,sql[1]);
             }
         }else if (cmd.startsWith("[3]")){
             log.warn("完成从节点的数据转移");

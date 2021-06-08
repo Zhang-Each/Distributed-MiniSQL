@@ -13,7 +13,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 public class FtpUtils {
     // 此处设置为FTP的IP地址
-    public String hostname = "localhost";
+    public String hostname = "192.168.43.85";
     public int port = 21;
     public String username = "test";
     public String password = "test";
@@ -67,11 +67,12 @@ public class FtpUtils {
                     return false;
                 }
                 for(FTPFile file : ftpFiles){
+                    System.out.println(file.getName());
                     if(fileName.equals("") || fileName.equalsIgnoreCase(file.getName())) {
                         if(!file.isDirectory()) {
-                            File saveFile = new File(savePath + "/" + file.getName());
+                            File saveFile = new File(savePath + file.getName());
                             os = new FileOutputStream(saveFile);
-                            ftpClient.retrieveFile(file.getName(), os);
+                            boolean result = ftpClient.retrieveFile(file.getName(), os);
                             os.close();
                         }
                     }
