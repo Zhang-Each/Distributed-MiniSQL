@@ -51,15 +51,14 @@ public class ServiceStrategyExecutor {
     private void execInvalidStrategy (String hostUrl) {
         StringBuffer allTable = new StringBuffer();
         List<String> tableList = tableManger.getTableList(hostUrl);
-        //<master>[3]name@sql#name@sql#name@sql
+        //<master>[3]ip#name@name@
+        String bestInet = tableManger.getBestServer(hostUrl);
+        log.warn("bestInet:"+bestInet);
+        allTable.append(bestInet+"#");
         for(String s:tableList){
             allTable.append(s);
             allTable.append("@");
-            allTable.append(tableManger.getSql(s));
-            allTable.append("#");
         }
-        String bestInet = tableManger.getBestServer(hostUrl);
-        log.warn("bestInet:"+bestInet);
         tableManger.exchangeTable(bestInet,hostUrl);
         SocketThread socketThread = tableManger.getSocketThread(bestInet);
         socketThread.sendToRegion("[3]"+allTable);

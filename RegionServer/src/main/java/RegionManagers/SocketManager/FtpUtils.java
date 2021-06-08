@@ -67,12 +67,11 @@ public class FtpUtils {
                     return false;
                 }
                 for(FTPFile file : ftpFiles){
-                    System.out.println(file.getName());
                     if(fileName.equals("") || fileName.equalsIgnoreCase(file.getName())) {
                         if(!file.isDirectory()) {
                             File saveFile = new File(savePath + file.getName());
                             os = new FileOutputStream(saveFile);
-                            boolean result = ftpClient.retrieveFile(file.getName(), os);
+                            ftpClient.retrieveFile(file.getName(), os);
                             os.close();
                         }
                     }
@@ -81,7 +80,51 @@ public class FtpUtils {
             } catch (IOException e) {
                 System.out.println("下载文件失败" + e.getMessage());
             } finally {
-                if(null != os){
+                if(null != os) {
+                    try {
+                        os.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                closeConnect();
+            }
+        }
+        return false;
+    }
+
+    public boolean additionalDownloadFile(String ftpPath, String fileName) {
+        login();
+        OutputStream os = null;
+        if (ftpClient != null) {
+            try {
+                if (!ftpClient.changeWorkingDirectory(ftpPath)) {
+                    System.out.println("/" + ftpPath + "该目录不存在");
+                    return false;
+                }
+                ftpClient.enterLocalPassiveMode();
+
+                FTPFile[] ftpFiles = ftpClient.listFiles();
+
+                if (ftpFiles == null || ftpFiles.length == 0) {
+                    System.out.println("/" + ftpPath + "该目录下无文件");
+                    return false;
+                }
+                for(FTPFile file : ftpFiles){
+                    if(fileName.equals("") || fileName.equalsIgnoreCase(file.getName())) {
+                        if(!file.isDirectory()) {
+                            File saveFile = new File(file.getName().split("#")[1]);
+                            os = new FileOutputStream(saveFile, true);
+                            ftpClient.retrieveFile(file.getName(), os);
+                            os.close();
+                        }
+                    }
+                }
+                return true;
+            } catch (IOException e) {
+                System.out.println("下载文件失败" + e.getMessage());
+            } finally {
+                if(null != os) {
                     try {
                         os.close();
                     } catch (IOException e) {

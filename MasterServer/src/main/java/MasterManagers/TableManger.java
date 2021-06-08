@@ -12,8 +12,6 @@ import java.util.*;
 public class TableManger {
     // 一个用于记录各种信息的表
     private Map<String, String> tableInfo;
-    // 一个用于记录每张表create 语句的map
-    private Map<String, String> name2sql;
     //一个用于记录所有连接过的从节点ip的list
     private List<String> serverList;
     //一个用于记录当前活跃的从节点ip，以及每个从节点ip对应的table list
@@ -26,25 +24,8 @@ public class TableManger {
         tableInfo = new HashMap<>();
         aliveServer = new HashMap<>();
         socketThreadMap = new HashMap<>();
-        name2sql = new HashMap<>();
-        File file = new File("text.txt");
-        if (file.exists())
-            readFile("text.txt");
     }
 
-    public void addTable(String table, String inetAddress, String sql) {
-        tableInfo.put(table, inetAddress);
-        writeFile("test.txt",table + "@" +sql);
-        name2sql.put(table,sql);
-        if(aliveServer.containsKey(inetAddress)){
-            aliveServer.get(inetAddress).add(table);
-        }
-        else{
-            List<String> temp = new ArrayList<>();
-            temp.add(table);
-            aliveServer.put(inetAddress,temp);
-        }
-    }
     public void addTable(String table, String inetAddress) {
         tableInfo.put(table, inetAddress);
         if(aliveServer.containsKey(inetAddress)){
@@ -145,33 +126,34 @@ public class TableManger {
         aliveServer.put(hostUrl,temp);
     }
 
-    public String getSql(String table) {
-        return name2sql.get(table);
-    }
-    public static void writeFile(String file, String conent) {
-        BufferedWriter out = null;
-        try {
-            out = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(file, true)));
-            out.write(conent+"\r\n");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    public void readFile(String file) throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-        String line = null;
-        while ((line = bufferedReader.readLine()) != null) {
-            String []sql = line.split("@");
-            name2sql.put(sql[0],sql[1]);
-        }
-        fileInputStream.close();
-    }
+//    public String getSql(String table) {
+//        return name2sql.get(table);
+//    }
+
+//    public static void writeFile(String file, String conent) {
+//        BufferedWriter out = null;
+//        try {
+//            out = new BufferedWriter(new OutputStreamWriter(
+//                    new FileOutputStream(file, true)));
+//            out.write(conent+"\r\n");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                out.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+//    public void readFile(String file) throws IOException {
+//        FileInputStream fileInputStream = new FileInputStream(file);
+//        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
+//        String line = null;
+//        while ((line = bufferedReader.readLine()) != null) {
+//            String []sql = line.split("@");
+//            name2sql.put(sql[0],sql[1]);
+//        }
+//        fileInputStream.close();
+//    }
 }

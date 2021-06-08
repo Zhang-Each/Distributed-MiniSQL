@@ -45,7 +45,8 @@ public class ClientThread implements Runnable  {
                 Thread.sleep(Long.parseLong("1000"));
                 line = input.readLine();
                 if (line != null) {
-                    String result = this.commandProcess(line);
+                    // TODO
+                    String result = this.commandProcess(line, socket.getInetAddress().toString());
                     if(!result.equals("No modified")) {
                         masterSocketManager.sendToMaster(result);
                     }
@@ -62,27 +63,34 @@ public class ClientThread implements Runnable  {
 
     // 从服务器处理接收到的命令，和出服务器的交互就在这一方法下面继续扩展
 
-    public String commandProcess(String sql) throws Exception {
+    public String commandProcess(String sql, String ip) throws Exception {
         System.out.println("要处理的命令：" + sql);
         String result = Interpreter.interpret(sql);
         API.store();
-        this.sendToClient(result);
+        sendToFTP("table_catalog");
+        this.sendTCToClient(result, ip);
         String[] parts = sql.split(" ");
         String[] res = result.split(" ");
         if(res[0].equals("-->Create")) {
             sendToFTP(res[2]);
-            return "<region>[2]" + res[2] + " add " + sql;
+            return "<region>[2]" + res[2] + " add";
         }
         else if(res[0].equals("-->Drop")) {
             deleteFromFTP(res[2]);
             return "<region>[2]" + res[2] + " delete";
         }
         else if(res[0].equals("-->Insert")) {
+            System.out.println(parts[2]);
+            deleteFromFTP(parts[2]);
             sendToFTP(parts[2]);
+            System.out.println("success");
             return "No modified";
         }
         else if(res[0].equals("-->Delete")) {
+            System.out.println(parts[2]);
+            deleteFromFTP(parts[2]);
             sendToFTP(parts[2]);
+            System.out.println("success");
             return "No modified";
         }
         else return "No modified";
@@ -96,5 +104,9 @@ public class ClientThread implements Runnable  {
     public void deleteFromFTP(String fileName) {
         ftpUtils.deleteFile(fileName, "table");
         ftpUtils.deleteFile(fileName + "_index.index", "index");
+    }
+
+    public void sendTCToClient(String fileName, String IP) {
+        ftpUtils.uploadFile(IP + "_" + fileName, "table_catalogs");
     }
 }

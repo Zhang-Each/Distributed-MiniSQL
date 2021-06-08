@@ -18,7 +18,7 @@ public class MasterSocketManager implements Runnable {
     private boolean isRunning = false;
 
     public final int SERVER_PORT = 12345;
-    public final String MASTER = "localhost";
+    public final String MASTER = "192.168.43.87";
 
     public MasterSocketManager() throws IOException {
         this.socket = new Socket(MASTER, SERVER_PORT);
@@ -36,11 +36,6 @@ public class MasterSocketManager implements Runnable {
         output.println("<region>[1]" + table_info);
     }
 
-    public void delFile(String fileName) {
-        File file = new File(fileName);
-        if (file.exists() && file.isFile()) file.delete();
-    }
-
     public void receiveFromMaster() throws IOException {
         String line = null;
         if (socket.isClosed() || socket.isInputShutdown() || socket.isOutputShutdown()) {
@@ -50,31 +45,23 @@ public class MasterSocketManager implements Runnable {
         }
         if (line != null) {
             if (line.startsWith("<master>[3]")) {
-                String tableName = line.substring(11);
-                String[] tables = tableName.split("#");
-                for(String s:tables){
-                    System.out.println(s);
-                }
+                String info = line.substring(11);
+                String[] tables = info.split("#")[1].split("@");
+                // <master[3]>ip#name@name@...
                 for(String table : tables) {
-                    String[] values = table.split("@");
-                    String t = values[0];
-                    String sql = values[1];
-                    if(sql.equals("null")) continue;
-                    Interpreter.interpret(sql);
-                    System.out.println(sql);
+                    delFile(table);
+                    delFile(table + "_index.index");
+                    ftpUtils.downLoadFile("table", table, "");
+                    ftpUtils.downLoadFile("index", table + "_index.index", "");
                     try {
-                        API.store();
+                        API.initial();
                     }
                     catch (Exception e) {
                         e.printStackTrace();
                     }
-
-                    delFile(t);
-                    delFile(t + "_index.index");
-                    ftpUtils.downLoadFile("table", t, "");
-                    ftpUtils.downLoadFile("index", t + "_index.index", "");
-
                 }
+                String ip = info.split("#")[0];
+                ftpUtils.additionalDownloadFile("table_catalogs", ip + "#tablecatalog");
                 output.println("<region>[3]Complete disaster recovery");
             }
             else if (line.equals("<master>[4]recover")) {
@@ -93,6 +80,11 @@ public class MasterSocketManager implements Runnable {
                 output.println("<master>[4]Online");
             }
         }
+    }
+
+    public void delFile(String fileName) {
+        File file = new File(fileName);
+        if (file.exists() && file.isFile()) file.delete();
     }
 
     @Override

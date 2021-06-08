@@ -34,13 +34,12 @@ public class RegionProcessor {
                 tableManger.addTable(temp, ipAddress);
             }
         } else if (cmd.startsWith("[2]")) {
-            String[] sql = cmd.substring(3).split("#");
-            String[] line = sql[0].split(" ");
+            String[] line = cmd.substring(3).split(" ");
             if(line[1].equals("delete")){
                 tableManger.deleteTable(line[0],ipAddress);
             }
             else if(line[1].equals("add")){
-                tableManger.addTable(line[0],ipAddress,sql[1]);
+                tableManger.addTable(line[0],ipAddress);
             }
         }else if (cmd.startsWith("[3]")){
             log.warn("完成从节点的数据转移");
