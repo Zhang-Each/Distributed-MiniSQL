@@ -14,7 +14,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 public class FtpUtils {
     // 此处设置为FTP的IP地址
-    public String hostname = "10.181.206.16";
+    public String hostname = "10.181.241.133";
     public int port = 21;
     public String username = "test";
     public String password = "test";
@@ -177,7 +177,7 @@ public class FtpUtils {
                 ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
                 ftpClient.makeDirectory(savePath);
                 ftpClient.changeWorkingDirectory(savePath);
-                ftpClient.storeFile(fileName + "#" + IP, inputStream);
+                ftpClient.storeFile(fileName, inputStream);
                 ftpClient.rename(fileName, "/catalog/" + IP + "#" + fileName);
                 inputStream.close();
                 flag = true;

@@ -24,6 +24,7 @@ public class MasterSocketManager implements Runnable {
     public MasterSocketManager() throws IOException {
         this.socket = new Socket(MASTER, SERVER_PORT);
         this.ftpUtils = new FtpUtils();
+        this.dataBaseManager = new DataBaseManager();
         input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         output = new PrintWriter(socket.getOutputStream(), true);
         isRunning = true;
@@ -47,6 +48,7 @@ public class MasterSocketManager implements Runnable {
         if (line != null) {
             if (line.startsWith("<master>[3]")) {
                 String info = line.substring(11);
+                if(line.length()==11) return;
                 String[] tables = info.split("#")[1].split("@");
                 // <master[3]>ip#name@name@...
                 for(String table : tables) {
@@ -67,8 +69,6 @@ public class MasterSocketManager implements Runnable {
                     e.printStackTrace();
                 }
                 System.out.println("here");
-                Scanner sc = new Scanner(System.in);
-                String tmp = sc.nextLine();
                 output.println("<region>[3]Complete disaster recovery");
             }
             else if (line.equals("<master>[4]recover")) {

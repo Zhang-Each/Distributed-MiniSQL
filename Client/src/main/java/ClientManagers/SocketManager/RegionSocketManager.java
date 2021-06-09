@@ -70,7 +70,7 @@ public class RegionSocketManager {
 
     // 像从服务器发送信息的api
     public void sendToRegion(String info) {
-        System.out.println("发送给从节点的消息是：" + info);
+//        System.out.println("发送给从节点的消息是：" + info);
         output.println(info);
     }
 

@@ -28,7 +28,12 @@ public class zkServiceManager implements Runnable {
             // 向ZooKeeper注册临时节点
             CuratorHolder curatorClientHolder = new CuratorHolder();
             int nChildren = curatorClientHolder.getChildren(ZookeeperManager.ZNODE).size();
-            curatorClientHolder.createNode(getRegisterPath() + nChildren, SocketUtils.getHostAddress(), CreateMode.EPHEMERAL);
+            if(nChildren==0)
+                curatorClientHolder.createNode(getRegisterPath() + nChildren, SocketUtils.getHostAddress(), CreateMode.EPHEMERAL);
+            else{
+                String index = String.valueOf(Integer.parseInt((curatorClientHolder.getChildren(ZookeeperManager.ZNODE)).get(nChildren - 1).substring(7)) + 1);
+                curatorClientHolder.createNode(getRegisterPath() + index, SocketUtils.getHostAddress(), CreateMode.EPHEMERAL);
+            }
 
             // 阻塞该线程，直到发生异常或者主动退出
             synchronized (this) {

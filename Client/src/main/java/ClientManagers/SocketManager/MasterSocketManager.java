@@ -97,10 +97,8 @@ public class MasterSocketManager {
 
     public void process(String sql, String table) {
         // 来处理sql语句
-        System.out.println(sql);
         this.commandMap.put(table, sql);
         // 用<table>前缀表示要查某个表名对应的端口号
-        System.out.println("存入table的是" + table + " " + sql);
         this.sendToMaster(table);
     }
 

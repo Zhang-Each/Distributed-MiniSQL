@@ -58,6 +58,7 @@ public class TableManger {
         String result = "";
         for(Map.Entry<String, List<String>> entry : aliveServer.entrySet()){
             if(entry.getValue().size()<min){
+                min = entry.getValue().size();
                 result = entry.getKey();
             }
         }
@@ -68,6 +69,7 @@ public class TableManger {
         String result = "";
         for(Map.Entry<String, List<String>> entry : aliveServer.entrySet()){
             if(!entry.getKey().equals(hostUrl) && entry.getValue().size()<min){
+                min = entry.getValue().size();
                 result = entry.getKey();
             }
         }
