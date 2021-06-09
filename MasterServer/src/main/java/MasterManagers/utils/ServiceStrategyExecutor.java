@@ -26,10 +26,6 @@ public class ServiceStrategyExecutor {
         return tableManger.existServer(hostUrl);
     }
 
-    public void addServer(String hostUrl) {
-        tableManger.addServer(hostUrl);
-    }
-
     public void execStrategy(String hostUrl, StrategyTypeEnum type) {
         try {
             switch (type) {
@@ -54,10 +50,16 @@ public class ServiceStrategyExecutor {
         //<master>[3]ip#name@name@
         String bestInet = tableManger.getBestServer(hostUrl);
         log.warn("bestInet:"+bestInet);
-        allTable.append(bestInet+"#");
+        allTable.append(hostUrl+"#");
+        int i = 0;
         for(String s:tableList){
-            allTable.append(s);
-            allTable.append("@");
+            if(i==0){
+                allTable.append(s);
+            }
+            else {
+                allTable.append("@");
+                allTable.append(s);
+            }
         }
         tableManger.exchangeTable(bestInet,hostUrl);
         SocketThread socketThread = tableManger.getSocketThread(bestInet);

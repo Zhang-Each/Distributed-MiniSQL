@@ -2,6 +2,7 @@ package RegionManagers.SocketManager;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 
 import lombok.SneakyThrows;
 import miniSQL.API;
@@ -18,7 +19,7 @@ public class MasterSocketManager implements Runnable {
     private boolean isRunning = false;
 
     public final int SERVER_PORT = 12345;
-    public final String MASTER = "192.168.43.87";
+    public final String MASTER = "localhost";
 
     public MasterSocketManager() throws IOException {
         this.socket = new Socket(MASTER, SERVER_PORT);
@@ -52,16 +53,22 @@ public class MasterSocketManager implements Runnable {
                     delFile(table);
                     delFile(table + "_index.index");
                     ftpUtils.downLoadFile("table", table, "");
+                    System.out.println("success " + table);
                     ftpUtils.downLoadFile("index", table + "_index.index", "");
-                    try {
-                        API.initial();
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    System.out.println("success " + table + "_index.index");
                 }
                 String ip = info.split("#")[0];
-                ftpUtils.additionalDownloadFile("table_catalogs", ip + "#tablecatalog");
+                ftpUtils.additionalDownloadFile("catalog", ip + "#table_catalog");
+                ftpUtils.additionalDownloadFile("catalog", ip + "#index_catalog");
+                try {
+                    API.initial();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                System.out.println("here");
+                Scanner sc = new Scanner(System.in);
+                String tmp = sc.nextLine();
                 output.println("<region>[3]Complete disaster recovery");
             }
             else if (line.equals("<master>[4]recover")) {

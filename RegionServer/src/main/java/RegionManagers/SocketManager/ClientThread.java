@@ -50,6 +50,7 @@ public class ClientThread implements Runnable  {
                     if(!result.equals("No modified")) {
                         masterSocketManager.sendToMaster(result);
                     }
+
                 }
             }
         } catch (Exception e) {
@@ -67,8 +68,8 @@ public class ClientThread implements Runnable  {
         System.out.println("要处理的命令：" + sql);
         String result = Interpreter.interpret(sql);
         API.store();
-        sendToFTP("table_catalog");
-        this.sendTCToClient(result, ip);
+        this.sendToClient(result);
+        this.sendTCToClient(ip);
         String[] parts = sql.split(" ");
         String[] res = result.split(" ");
         if(res[0].equals("-->Create")) {
@@ -81,14 +82,12 @@ public class ClientThread implements Runnable  {
         }
         else if(res[0].equals("-->Insert")) {
             System.out.println(parts[2]);
-            deleteFromFTP(parts[2]);
             sendToFTP(parts[2]);
             System.out.println("success");
             return "No modified";
         }
         else if(res[0].equals("-->Delete")) {
             System.out.println(parts[2]);
-            deleteFromFTP(parts[2]);
             sendToFTP(parts[2]);
             System.out.println("success");
             return "No modified";
@@ -106,7 +105,8 @@ public class ClientThread implements Runnable  {
         ftpUtils.deleteFile(fileName + "_index.index", "index");
     }
 
-    public void sendTCToClient(String fileName, String IP) {
-        ftpUtils.uploadFile(IP + "_" + fileName, "table_catalogs");
+    public void sendTCToClient(String IP) {
+        ftpUtils.uploadFile("table_catalog", IP, "catalog");
+        ftpUtils.uploadFile("index_catalog", IP, "catalog");
     }
 }

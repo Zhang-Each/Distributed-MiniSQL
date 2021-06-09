@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Scanner;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -13,7 +14,7 @@ import org.apache.commons.net.ftp.FTPReply;
 
 public class FtpUtils {
     // 此处设置为FTP的IP地址
-    public String hostname = "192.168.43.85";
+    public String hostname = "10.181.206.16";
     public int port = 21;
     public String username = "test";
     public String password = "test";
@@ -148,6 +149,36 @@ public class FtpUtils {
                 ftpClient.makeDirectory(savePath);
                 ftpClient.changeWorkingDirectory(savePath);
                 ftpClient.storeFile(fileName, inputStream);
+                inputStream.close();
+                flag = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if(null != inputStream) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                closeConnect();
+            }
+        }
+        return flag;
+    }
+
+    public boolean uploadFile(String fileName, String IP, String savePath) {
+        login();
+        boolean flag = false;
+        InputStream inputStream = null;
+        if (ftpClient != null) {
+            try{
+                inputStream = new FileInputStream(new File(fileName));
+                ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
+                ftpClient.makeDirectory(savePath);
+                ftpClient.changeWorkingDirectory(savePath);
+                ftpClient.storeFile(fileName + "#" + IP, inputStream);
+                ftpClient.rename(fileName, "/catalog/" + IP + "#" + fileName);
                 inputStream.close();
                 flag = true;
             } catch (Exception e) {
