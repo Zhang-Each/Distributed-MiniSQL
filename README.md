@@ -10,67 +10,118 @@
 
 ```bash
 ├─Client
+│  │  pom.xml
+│  │  
 │  ├─src
 │  │  ├─main
 │  │  │  ├─java
+│  │  │  │  │  Client.java
+│  │  │  │  │  
 │  │  │  │  └─ClientManagers
+│  │  │  │      │  CacheManager.java
+│  │  │  │      │  ClientManager.java
+│  │  │  │      │  
 │  │  │  │      └─SocketManager
+│  │  │  │              MasterSocketManager.java
+│  │  │  │              RegionSocketManager.java
+│  │  │  │              
 │  │  │  └─resources
 │  │  └─test
 │  │      └─java
 │  └─target
-│      ├─classes
-│      │  ├─ClientManagers
-│      │  │  └─SocketManager
-│      │  └─META-INF
-│      └─generated-sources
-│          └─annotations
+|
 ├─MasterServer
+│  │  pom.xml
+│  │  
 │  ├─src
 │  │  ├─main
 │  │  │  ├─java
+│  │  │  │  │  MasterServer.java
+│  │  │  │  │  
 │  │  │  │  └─MasterManagers
+│  │  │  │      │  MasterManager.java
+│  │  │  │      │  TableManger.java
+│  │  │  │      │  ZookeeperManager.java
+│  │  │  │      │  
 │  │  │  │      ├─SocketManager
+│  │  │  │      │      ClientProcessor.java
+│  │  │  │      │      RegionProcessor.java
+│  │  │  │      │      SocketManager.java
+│  │  │  │      │      SocketThread.java
+│  │  │  │      │      
 │  │  │  │      └─utils
+│  │  │  │              CuratorHolder.java
+│  │  │  │              ServiceMonitor.java
+│  │  │  │              ServiceStrategyExecutor.java
+│  │  │  │              SocketUtils.java
+│  │  │  │              StrategyTypeEnum.java
+│  │  │  │              
 │  │  │  └─resources
+│  │  │          log4j.properties
+│  │  │          
 │  │  └─test
 │  │      └─java
 │  └─target
-│      ├─classes
-│      │  ├─MasterManagers
-│      │  │  ├─SocketManager
-│      │  │  └─utils
-│      │  └─META-INF
-│      └─generated-sources
-│          └─annotations
+│      
 ├─RegionServer
+│  │  pom.xml
+│  │  
 │  ├─src
 │  │  ├─main
 │  │  │  ├─java
+│  │  │  │  │  RegionServer.java
+│  │  │  │  │  
 │  │  │  │  ├─miniSQL
+│  │  │  │  │  │  API.java
+│  │  │  │  │  │  Interpreter.java
+│  │  │  │  │  │  Main.java
+│  │  │  │  │  │  QException.java
+│  │  │  │  │  │  
 │  │  │  │  │  ├─BUFFERMANAGER
+│  │  │  │  │  │      Block.java
+│  │  │  │  │  │      BufferManager.java
+│  │  │  │  │  │      
 │  │  │  │  │  ├─CATALOGMANAGER
+│  │  │  │  │  │      Address.java
+│  │  │  │  │  │      Attribute.java
+│  │  │  │  │  │      CatalogManager.java
+│  │  │  │  │  │      FieldType.java
+│  │  │  │  │  │      NumType.java
+│  │  │  │  │  │      Table.java
+│  │  │  │  │  │      
 │  │  │  │  │  ├─INDEXMANAGER
+│  │  │  │  │  │      BPTree.java
+│  │  │  │  │  │      Index.java
+│  │  │  │  │  │      IndexManager.java
+│  │  │  │  │  │      
 │  │  │  │  │  ├─RECORDMANAGER
+│  │  │  │  │  │      Condition.java
+│  │  │  │  │  │      RecordManager.java
+│  │  │  │  │  │      TableRow.java
+│  │  │  │  │  │      
 │  │  │  │  │  └─test
+│  │  │  │  │          TestRecord.java
+│  │  │  │  │          
 │  │  │  │  └─RegionManagers
+│  │  │  │      │  DataBaseManager.java
+│  │  │  │      │  RegionManager.java
+│  │  │  │      │  zkServiceManager.java
+│  │  │  │      │  
 │  │  │  │      └─SocketManager
+│  │  │  │              ClientSocketManager.java
+│  │  │  │              ClientThread.java
+│  │  │  │              FtpUtils.java
+│  │  │  │              MasterSocketManager.java
+│  │  │  │              
 │  │  │  └─resources
 │  │  └─test
 │  │      └─java
 │  └─target
-│      ├─classes
-│      │  ├─META-INF
-│      │  ├─miniSQL
-│      │  │  ├─BUFFERMANAGER
-│      │  │  ├─CATALOGMANAGER
-│      │  │  ├─INDEXMANAGER
-│      │  │  └─RECORDMANAGER
-│      │  └─RegionManagers
-│      │      └─SocketManager
-│      └─generated-sources
-│          └─annotations
+│
 └─Report&PPT
+        初期设计报告.pdf
+        最终设计报告.pdf
+        答辩ppt.pptx
 
 ```
 
